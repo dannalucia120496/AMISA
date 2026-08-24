@@ -28,6 +28,21 @@ export default async function handler(req, res) {
 
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     
+    const prompt = `Analiza detalladamente este audio en formato WAV y extrae la información en un formato JSON estricto con la siguiente estructura:
+    {
+      "metricas": "Métricas resumidas de tiempos (hablado, silencio >3s, porcentajes, desglose de responsabilidad)",
+      "lineas": "Identificación de líneas telefónicas, titulares, ofertas y trámites realizados.",
+      "silencios": [
+        {"num": 1, "inicia": "01:59", "iniciaSeg": 119, "termina": "02:04", "duracion": "5.0 seg", "responsable": "Cliente", "causa": "Búsqueda de número..."}
+      ],
+      "resumen": "Resumen narrativo claro de los acuerdos y gestiones de la llamada.",
+      "transcripcion": [
+        {"tiempo": "00:00 - 00:01", "hablante": "Asesora", "dialogo": "Aló, hola..."}
+      ],
+      "qa": "Sugerencias de mejora para el control de calidad (frases de espera, pausas CRM, etc.)"
+    }
+    Responde ÚNICAMENTE con el objeto JSON válido.`;
+
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: [
@@ -37,16 +52,14 @@ export default async function handler(req, res) {
             data: base64Audio
           }
         },
-        `Analiza detalladamente este audio en formato WAV.
-        Extrae los datos clave y genera un reporte estructurado en formato Markdown con las siguientes secciones:
-        1. Resumen Ejecutivo
-        2. Datos e Información Clave Extraída
-        3. Compromisos / Acuerdos
-        4. Acciones Recomendadas`
+        prompt
       ]
     });
 
-    return res.status(200).json({ reporte: response.text });
+    let cleanedText = response.text.replace(/```json|```/g, '').trim();
+    const reporteJSON = JSON.parse(cleanedText);
+
+    return res.status(200).json({ reporteJSON });
   } catch (error) {
     return res.status(500).json({ error: 'Error procesando el audio: ' + error.message });
   }
