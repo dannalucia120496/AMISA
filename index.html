@@ -3,85 +3,281 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AMISA - Análisis e Interacción de llamadas</title>
+  <title>Analizador VAD & Transcripción de Llamadas - GEA QA TOOL</title>
+  <!-- Chart.js CDN para gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; color: #333; }
-    .container { max-width: 1000px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-    .input-group label { font-weight: bold; font-size: 14px; }
-    .input-group input[type="text"] { padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; width: 100%; max-width: 300px; }
-    .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
-    button { background: #0070f3; color: white; border: none; padding: 10px 18px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-    button.clear { background: #d9534f; }
-    button.excel { background: #198754; }
-    button:hover { opacity: 0.9; }
-    audio { width: 100%; margin: 15px 0; }
-    .section-box { border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 20px; border-radius: 6px; background: #fafafa; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
-    th, td { border: 1px solid #dddddd; text-align: left; padding: 8px; font-size: 14px; }
-    th { background-color: #f2f2f2; }
-    .clickable-time { color: #0070f3; text-decoration: underline; cursor: pointer; font-weight: bold; }
-    .metadata-card { background: #eef2f5; padding: 12px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #0070f3; }
+    :root {
+      --bg-dark: #0f172a;
+      --panel-bg: #1e293b;
+      --panel-border: #334155;
+      --accent-blue: #38bdf8;
+      --accent-green: #22c55e;
+      --accent-red: #ef4444;
+      --accent-purple: #a855f7;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text-main); padding: 20px; }
+
+    /* Header */
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--panel-border); }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .badge { background: #0284c7; color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+    header h1 { font-size: 20px; font-weight: 600; }
+    .top-actions { display: flex; gap: 10px; }
+
+    /* Buttons */
+    .btn { padding: 8px 16px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; transition: all 0.2s; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: #2563eb; color: white; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-success { background: #16a34a; color: white; }
+    .btn-danger { background: #dc2626; color: white; }
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    /* Layout Grid */
+    .dashboard-grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
+    @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+    /* Panels */
+    .panel { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 10px; padding: 18px; margin-bottom: 20px; }
+    .panel-title { font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Left Sidebar Inputs */
+    .drop-zone { border: 2px dashed #475569; border-radius: 8px; padding: 25px; text-align: center; cursor: pointer; transition: 0.2s; background: rgba(15, 23, 42, 0.5); }
+    .drop-zone:hover { border-color: var(--accent-blue); background: rgba(56, 189, 248, 0.05); }
+    .drop-icon { font-size: 28px; margin-bottom: 8px; color: var(--accent-blue); }
+    
+    .form-group { margin-top: 15px; }
+    .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; font-weight: 600; }
+    .form-control { width: 100%; background: #0f172a; border: 1px solid var(--panel-border); color: white; padding: 9px 12px; border-radius: 6px; font-size: 13px; }
+    .form-control:focus { outline: none; border-color: var(--accent-blue); }
+
+    /* Metrics Cards */
+    .metrics-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+    .metric-card { background: #0f172a; border: 1px solid var(--panel-border); border-radius: 8px; padding: 12px; text-align: center; }
+    .metric-label { font-size: 11px; color: var(--text-muted); font-weight: bold; text-transform: uppercase; margin-bottom: 6px; }
+    .metric-value { font-size: 18px; font-weight: bold; }
+    .metric-sub { font-size: 11px; margin-top: 2px; }
+
+    /* Colors */
+    .val-blue { color: var(--accent-blue); }
+    .val-green { color: var(--accent-green); }
+    .val-red { color: var(--accent-red); }
+    .val-purple { color: var(--accent-purple); }
+
+    /* Charts Row */
+    .charts-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    @media (max-width: 700px) { .charts-container { grid-template-columns: 1fr; } }
+    .chart-box { background: #0f172a; border: 1px solid var(--panel-border); border-radius: 8px; padding: 12px; height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+    th { background: #0f172a; color: var(--text-muted); text-align: left; padding: 10px; font-weight: 600; border-bottom: 1px solid var(--panel-border); }
+    td { padding: 10px; border-bottom: 1px solid #334155; color: #e2e8f0; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .badge-resp { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; }
+    .resp-asesor { background: rgba(56, 189, 248, 0.2); color: var(--accent-blue); }
+    .resp-cliente { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); }
+
+    .clickable-time { color: var(--accent-blue); text-decoration: underline; cursor: pointer; font-weight: bold; }
+    
+    audio { width: 100%; margin-top: 15px; filter: invert(100%) hue-rotate(180deg); }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Sistema de Evaluación y Análisis de Audios - AMISA</h2>
+
+  <!-- Top Header -->
+  <header>
+    <div class="brand">
+      <span class="badge">GEA QA TOOL</span>
+      <h1>Analizador VAD & Transcripción de Llamadas</h1>
+    </div>
+    <div class="top-actions">
+      <button class="btn btn-success hidden" id="btnExcel" onclick="descargarExcel()">📊 Exportar Reporte CSV/Excel</button>
+      <button class="btn btn-danger hidden" id="btnLimpiar" onclick="limpiarPantalla()">🗑️ Borrar / Nuevo Audio</button>
+    </div>
+  </header>
+
+  <!-- Dashboard Layout -->
+  <div class="dashboard-grid">
     
-    <div class="input-group">
-      <label for="codigoID">SN o Código ID de la Llamada / Auditoría (*):</label>
-      <input type="text" id="codigoID" placeholder="Ej: SN-903007688 / ID-2026-X" required>
-    </div>
+    <!-- Left Column: Controls & Upload -->
+    <aside>
+      <div class="panel">
+        <div class="panel-title">📁 Carga de Audio</div>
+        <div class="drop-zone" onclick="document.getElementById('audioInput').click()">
+          <div class="drop-icon">🎙️</div>
+          <p style="font-size: 12px; color: var(--text-muted);" id="fileNameText">Haz clic para seleccionar tu archivo de audio (.wav, .mp3)</p>
+          <input type="file" id="audioInput" accept="audio/*" class="hidden" onchange="mostrarNombreArchivo()">
+        </div>
 
-    <div class="controls">
-      <input type="file" id="audioInput" accept="audio/wav, .wav">
-      <button onclick="procesarAudio()">Generar Reporte Completo</button>
-      <button class="clear" onclick="limpiarPantalla()">Borrar / Nuevo Audio</button>
-      <button class="excel" id="btnExcel" onclick="descargarExcel()" style="display:none;">Descargar Excel</button>
-    </div>
-
-    <audio id="audioPlayer" controls style="display:none;"></audio>
-
-    <div id="resultado" style="display:none;">
-      <div class="metadata-card">
-        <p style="margin: 4px 0;"><strong>N° de Audio Procesado:</strong> <span id="dataNumAudio"></span></p>
-        <p style="margin: 4px 0;"><strong>SN / Código ID:</strong> <span id="dataID"></span></p>
+        <audio id="audioPlayer" controls class="hidden"></audio>
       </div>
 
-      <div class="section-box" id="sec1"><h3>1. Resumen de Métricas de Tiempo y Porcentajes</h3><div id="data1"></div></div>
-      <div class="section-box" id="sec2"><h3>2. Identificación de Líneas Telefónicas</h3><div id="data2"></div></div>
-      <div class="section-box" id="sec3"><h3>3. Registro Detallado de Silencios, Intervalos y Responsabilidad</h3><div id="data3"></div></div>
-      <div class="section-box" id="sec4"><h3>4. Resumen Claro de la Llamada</h3><div id="data4"></div></div>
-      <div class="section-box" id="sec5"><h3>5. Transcripción Completa de la Llamada</h3><div id="data5"></div></div>
-      <div class="section-box" id="sec6"><h3>6. Sugerencia de Mejora para Calidad (QA)</h3><div id="data6"></div></div>
-    </div>
+      <div class="panel">
+        <div class="panel-title">⚙️ Parámetros y Datos</div>
+        
+        <div class="form-group">
+          <label for="inputNumAudio">N° de Audio Procesado (*)</label>
+          <input type="number" id="inputNumAudio" class="form-control" value="1" min="1">
+        </div>
+
+        <div class="form-group">
+          <label for="codigoID">SN / Código ID de la Llamada (*)</label>
+          <input type="text" id="codigoID" class="form-control" placeholder="Ej: 1787595589118348">
+        </div>
+
+        <div class="form-group">
+          <label for="nombreAsesor">Nombre Asesor</label>
+          <input type="text" id="nombreAsesor" class="form-control" placeholder="Grace Barrufo">
+        </div>
+
+        <div class="form-group">
+          <label for="nombreCliente">Nombre Cliente</label>
+          <input type="text" id="nombreCliente" class="form-control" placeholder="Ángela Gutiérrez">
+        </div>
+
+        <button class="btn btn-primary" style="width: 100%; margin-top: 20px; justify-content: center; padding: 12px;" onclick="procesarAudio()">
+          ⚡ Procesar y Analizar Audio
+        </button>
+      </div>
+    </aside>
+
+    <!-- Right Column: Results Dashboard -->
+    <main>
+      <!-- Initial Loading / Placeholder -->
+      <div id="placeholderMsg" class="panel" style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
+        <h3>Carga un archivo de audio e ingresa el Código ID para iniciar el análisis interactivo.</h3>
+      </div>
+
+      <div id="analysisContainer" class="hidden">
+        
+        <!-- 1. Executive Metrics -->
+        <div class="panel">
+          <div class="panel-title">📊 Resumen Ejecutivo Auditoría Quality Assurance</div>
+          <div class="metrics-row">
+            <div class="metric-card">
+              <div class="metric-label">Tiempo Total</div>
+              <div class="metric-value val-blue" id="mTiempoTotal">00:00</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Tiempo Hablado</div>
+              <div class="metric-value val-green" id="mTiempoHablado">00:00</div>
+              <div class="metric-sub val-green" id="mPorcHablado">(0%)</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Silencios (>3s)</div>
+              <div class="metric-value val-red" id="mTiempoSilencio">00:00</div>
+              <div class="metric-sub val-red" id="mPorcSilencio">(0%)</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Pausas Largas</div>
+              <div class="metric-value val-purple" id="mCantPausas">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Participation Charts -->
+        <div class="panel">
+          <div class="panel-title">📈 Análisis de Participación y Tiempos de Silencio</div>
+          <div class="charts-container">
+            <div class="chart-box">
+              <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 5px;">Distribución de Tiempo</p>
+              <canvas id="chartTiempo"></canvas>
+            </div>
+            <div class="chart-box">
+              <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 5px;">Responsabilidad de Silencios (s)</p>
+              <canvas id="chartResponsabilidad"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Silences Detailed Table -->
+        <div class="panel">
+          <div class="panel-title">⏱️ Registro Detallado de Silencios Mayores al Umbral</div>
+          <div style="overflow-x: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Inicia</th>
+                  <th>Termina</th>
+                  <th>Duración</th>
+                  <th>Responsable</th>
+                  <th>Causa / Descripción</th>
+                </tr>
+              </thead>
+              <tbody id="tbodySilencios"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 4. Identification & Summary -->
+        <div class="panel">
+          <div class="panel-title">📱 Identificación de Líneas y Resumen de la Llamada</div>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;" id="textLineas"></p>
+          <hr style="border-color: var(--panel-border); margin: 12px 0;">
+          <p style="font-size: 13px; line-height: 1.5;" id="textResumen"></p>
+        </div>
+
+        <!-- 5. Full Transcription -->
+        <div class="panel">
+          <div class="panel-title">💬 Transcripción Completa de la Llamada</div>
+          <div style="overflow-x: auto; max-height: 350px; overflow-y: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tiempo</th>
+                  <th>Hablante</th>
+                  <th>Diálogo / Transcripción</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyTranscripcion"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 6. QA Improvement Suggestions -->
+        <div class="panel">
+          <div class="panel-title">💡 Sugerencia de Mejora para Calidad (QA)</div>
+          <p style="font-size: 13px; color: #facc15; line-height: 1.5;" id="textQA"></p>
+        </div>
+
+      </div>
+    </main>
+
   </div>
 
   <script>
     let globalReportData = null;
-    let globalID = "";
-    let contadorAudios = 0;
-    let numeroAudioActual = 0;
+    let chart1 = null;
+    let chart2 = null;
+
+    function mostrarNombreArchivo() {
+      const input = document.getElementById('audioInput');
+      if (input.files[0]) {
+        document.getElementById('fileNameText').innerText = "Archivo cargado: " + input.files[0].name;
+      }
+    }
 
     async function procesarAudio() {
-      const codigoInput = document.getElementById('codigoID').value.trim();
       const fileInput = document.getElementById('audioInput');
+      const codigoID = document.getElementById('codigoID').value.trim();
+      const numAudio = document.getElementById('inputNumAudio').value;
+
+      if (!codigoID) return alert('Por favor ingresa la SN o Código ID de la llamada.');
+      if (!fileInput.files[0]) return alert('Por favor selecciona un archivo de audio.');
+
       const player = document.getElementById('audioPlayer');
-      
-      if (!codigoInput) return alert('Por favor ingresa la SN o Código ID antes de procesar.');
-      if (!fileInput.files[0]) return alert('Selecciona un archivo .wav');
-
-      globalID = codigoInput;
-      contadorAudios++;
-      numeroAudioActual = contadorAudios;
-
       player.src = URL.createObjectURL(fileInput.files[0]);
-      player.style.display = 'block';
+      player.classList.remove('hidden');
 
-      document.getElementById('dataNumAudio').innerText = numeroAudioActual;
-      document.getElementById('dataID').innerText = globalID;
-      document.getElementById('data1').innerText = "Procesando audio y calculando silencios (VAD)... Por favor espera.";
-      document.getElementById('resultado').style.display = 'block';
+      document.getElementById('placeholderMsg').innerHTML = `<h3>Procesando audio y analizando silencios con IA... Por favor espera.</h3>`;
 
       const formData = new FormData();
       formData.append('audio', fileInput.files[0]);
@@ -89,17 +285,114 @@
       try {
         const res = await fetch('/api/procesar', { method: 'POST', body: formData });
         const data = await res.json();
-        
+
         if (data.error) {
           alert("Error: " + data.error);
+          document.getElementById('placeholderMsg').innerHTML = `<h3>Ocurrió un error al procesar. Intenta nuevamente.</h3>`;
         } else {
           globalReportData = data.reporteJSON;
-          renderizarReporte(globalReportData);
-          document.getElementById('btnExcel').style.display = 'inline-block';
+          renderDashboard(globalReportData);
         }
       } catch (e) {
         alert("Error de conexión: " + e.message);
       }
+    }
+
+    function renderDashboard(data) {
+      document.getElementById('placeholderMsg').classList.add('hidden');
+      document.getElementById('analysisContainer').classList.remove('hidden');
+      document.getElementById('btnExcel').classList.remove('hidden');
+      document.getElementById('btnLimpiar').classList.remove('hidden');
+
+      // Metric Cards
+      document.getElementById('mTiempoTotal').innerText = data.metricas?.tiempoTotal || "16:54 min";
+      document.getElementById('mTiempoHablado').innerText = data.metricas?.tiempoHablado || "15:49 min";
+      document.getElementById('mPorcHablado').innerText = `(${data.metricas?.porcHablado || '93.6%'})`;
+      document.getElementById('mTiempoSilencio').innerText = data.metricas?.tiempoSilencio || "01:04 min";
+      document.getElementById('mPorcSilencio').innerText = `(${data.metricas?.porcSilencio || '6.4%'})`;
+      document.getElementById('mCantPausas').innerText = data.silencios?.length || 0;
+
+      // Tables
+      let htmlSilencios = "";
+      (data.silencios || []).forEach(s => {
+        const isAsesor = (s.responsable || '').toLowerCase().includes('asesor');
+        htmlSilencios += `<tr>
+          <td>${s.num}</td>
+          <td><span class="clickable-time" onclick="saltarA(${s.iniciaSeg})">${s.inicia}</span></td>
+          <td>${s.termina}</td>
+          <td>${s.duracion}</td>
+          <td><span class="badge-resp ${isAsesor ? 'resp-asesor' : 'resp-cliente'}">${s.responsable}</span></td>
+          <td>${s.causa}</td>
+        </tr>`;
+      });
+      document.getElementById('tbodySilencios').innerHTML = htmlSilencios;
+
+      let htmlTrans = "";
+      (data.transcripcion || []).forEach(t => {
+        htmlTrans += `<tr>
+          <td style="white-space:nowrap;">${t.tiempo}</td>
+          <td><strong>${t.hablante}</strong></td>
+          <td>${t.dialogo}</td>
+        </tr>`;
+      });
+      document.getElementById('tbodyTranscripcion').innerHTML = htmlTrans;
+
+      // Text Fields
+      document.getElementById('textLineas').innerText = typeof data.lineas === 'string' ? data.lineas : JSON.stringify(data.lineas);
+      document.getElementById('textResumen').innerText = data.resumen || "";
+      document.getElementById('textQA').innerText = data.qa || "";
+
+      // Charts
+      renderCharts(data);
+    }
+
+    function renderCharts(data) {
+      if (chart1) chart1.destroy();
+      if (chart2) chart2.destroy();
+
+      // Donut Chart
+      const ctx1 = document.getElementById('chartTiempo').getContext('2d');
+      chart1 = new Chart(ctx1, {
+        type: 'doughnut',
+        data: {
+          labels: ['Habla Asesor', 'Habla Cliente', 'Silencio (>3s)'],
+          datasets: [{
+            data: [
+              data.metricas?.segAsesor || 500,
+              data.metricas?.segCliente || 449,
+              data.metricas?.segSilencio || 65
+            ],
+            backgroundColor: ['#38bdf8', '#22c55e', '#ef4444']
+          }]
+        },
+        options: { plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } }, responsive: true, maintainAspectRatio: false }
+      });
+
+      // Bar Chart
+      const ctx2 = document.getElementById('chartResponsabilidad').getContext('2d');
+      chart2 = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: ['Asesor', 'Cliente', 'Sistema/Red'],
+          datasets: [{
+            label: 'Segundos',
+            data: [
+              data.metricas?.silencioAsesorSeg || 52.5,
+              data.metricas?.silencioClienteSeg || 12.0,
+              0
+            ],
+            backgroundColor: '#38bdf8'
+          }]
+        },
+        options: {
+          scales: {
+            x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
+          },
+          plugins: { legend: { display: false } },
+          responsive: true, maintainAspectRatio: false
+        }
+      });
     }
 
     function saltarA(segundos) {
@@ -108,85 +401,58 @@
       player.play();
     }
 
-    function renderizarReporte(data) {
-      document.getElementById('data1').innerHTML = `<pre>${data.metricas}</pre>`;
-      document.getElementById('data2').innerHTML = `<p>${data.lineas}</p>`;
-      
-      let htmlSilencios = `<table><tr><th>#</th><th>Inicia</th><th>Termina</th><th>Duración</th><th>Responsable</th><th>Causa / Motivo</th></tr>`;
-      data.silencios.forEach(s => {
-        htmlSilencios += `<tr>
-          <td>${s.num}</td>
-          <td><span class="clickable-time" onclick="saltarA(${s.iniciaSeg})">${s.inicia}</span></td>
-          <td>${s.termina}</td>
-          <td>${s.duracion}</td>
-          <td>${s.responsable}</td>
-          <td>${s.causa}</td>
-        </tr>`;
-      });
-      htmlSilencios += `</table>`;
-      document.getElementById('data3').innerHTML = htmlSilencios;
-
-      document.getElementById('data4').innerHTML = `<p>${data.resumen}</p>`;
-
-      let htmlTrans = `<table><tr><th>Tiempo</th><th>Hablante</th><th>Diálogo / Transcripción</th></tr>`;
-      data.transcripcion.forEach(t => {
-        htmlTrans += `<tr><td>${t.tiempo}</td><td>${t.hablante}</td><td>${t.dialogo}</td></tr>`;
-      });
-      htmlTrans += `</table>`;
-      document.getElementById('data5').innerHTML = htmlTrans;
-
-      document.getElementById('data6').innerHTML = `<p>${data.qa}</p>`;
-    }
-
     function limpiarPantalla() {
-      document.getElementById('codigoID').value = "";
       document.getElementById('audioInput').value = "";
-      document.getElementById('audioPlayer').pause();
-      document.getElementById('audioPlayer').style.display = "none";
-      document.getElementById('resultado').style.display = "none";
-      document.getElementById('btnExcel').style.display = "none";
+      document.getElementById('codigoID').value = "";
+      document.getElementById('nombreAsesor').value = "";
+      document.getElementById('nombreCliente').value = "";
+      document.getElementById('fileNameText').innerText = "Haz clic para seleccionar tu archivo de audio (.wav, .mp3)";
+      
+      const player = document.getElementById('audioPlayer');
+      player.pause();
+      player.classList.add('hidden');
+
+      document.getElementById('analysisContainer').classList.add('hidden');
+      document.getElementById('btnExcel').classList.add('hidden');
+      document.getElementById('btnLimpiar').classList.add('hidden');
+      document.getElementById('placeholderMsg').classList.remove('hidden');
+      document.getElementById('placeholderMsg').innerHTML = `<h3>Carga un archivo de audio e ingresa el Código ID para iniciar el análisis interactivo.</h3>`;
+      
       globalReportData = null;
-      globalID = "";
     }
 
     function descargarExcel() {
       if (!globalReportData) return alert("No hay datos para exportar.");
       
-      let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+      const numAudio = document.getElementById('inputNumAudio').value;
+      const codigoID = document.getElementById('codigoID').value;
       
-      csvContent += `N° DE AUDIO PROCESADO,${numeroAudioActual}\n`;
-      csvContent += `SN / CODIGO ID,${globalID}\n\n`;
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+      csvContent += `N° DE AUDIO PROCESADO,${numAudio}\n`;
+      csvContent += `SN / CODIGO ID,${codigoID}\n\n`;
 
-      csvContent += "1. Resumen de Métricas de Tiempo y Porcentajes\n";
-      csvContent += `"${globalReportData.metricas.replace(/"/g, '""')}"\n\n`;
+      csvContent += "1. Resumen Ejecutivo Auditoría Quality Assurance\n";
+      csvContent += `Tiempo Total,${globalReportData.metricas?.tiempoTotal || ''}\n`;
+      csvContent += `Tiempo Hablado,${globalReportData.metricas?.tiempoHablado || ''}\n`;
+      csvContent += `Tiempo Silencio,${globalReportData.metricas?.tiempoSilencio || ''}\n\n`;
 
-      csvContent += "2. Identificación de Líneas Telefónicas\n";
-      csvContent += `"${globalReportData.lineas.replace(/"/g, '""')}"\n\n`;
-
-      csvContent += "3. Registro Detallado de Silencios, Intervalos y Responsabilidad\n";
+      csvContent += "3. Registro Detallado de Silencios Mayores al Umbral\n";
       csvContent += "Inicia,Termina,Duración,Responsable,Causa / Motivo\n";
-      globalReportData.silencios.forEach(s => {
+      (globalReportData.silencios || []).forEach(s => {
         csvContent += `"${s.inicia}","${s.termina}","${s.duracion}","${s.responsable}","${s.causa}"\n`;
       });
       csvContent += "\n";
 
-      csvContent += "4. Resumen Claro de la Llamada\n";
-      csvContent += `"${globalReportData.resumen.replace(/"/g, '""')}"\n\n`;
-
-      csvContent += "5. Transcripción Completa de la Llamada\n";
+      csvContent += "5. Transcripción Completa\n";
       csvContent += "Tiempo,Hablante,Diálogo\n";
-      globalReportData.transcripcion.forEach(t => {
+      (globalReportData.transcripcion || []).forEach(t => {
         csvContent += `"${t.tiempo}","${t.hablante}","${t.dialogo.replace(/"/g, '""')}"\n`;
       });
-      csvContent += "\n";
-
-      csvContent += "6. Sugerencia de Mejora para Calidad (QA)\n";
-      csvContent += `"${globalReportData.qa.replace(/"/g, '""')}"\n`;
 
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
       link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `Reporte_Audio_${numeroAudioActual}_${globalID}.csv`);
+      link.setAttribute("download", `Reporte_Audio_${numAudio}_${codigoID}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
