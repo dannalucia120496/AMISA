@@ -7,73 +7,78 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --bg-dark: #0f172a;
-      --panel-bg: #1e293b;
-      --panel-border: #334155;
-      --accent-blue: #38bdf8;
-      --accent-green: #22c55e;
-      --accent-red: #ef4444;
-      --accent-purple: #a855f7;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
+      --bg-body: #f8fafc;
+      --card-bg: #ffffff;
+      --border-color: #e2e8f0;
+      --primary-blue: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent-cyan: #0284c7;
+      --accent-green: #16a34a;
+      --accent-amber: #d97706;
+      --accent-red: #dc2626;
+      --accent-purple: #7c3aed;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-main); padding: 20px; }
+    body { background-color: var(--bg-body); color: var(--text-main); padding: 24px; }
 
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--panel-border); }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--border-color); }
     .brand { display: flex; align-items: center; gap: 12px; }
-    .badge { background: #0284c7; color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
-    header h1 { font-size: 20px; font-weight: 600; }
+    .badge { background: linear-gradient(135deg, #2563eb, #0284c7); color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
+    header h1 { font-size: 22px; font-weight: 700; color: var(--text-main); }
     .top-actions { display: flex; gap: 10px; }
 
-    .btn { padding: 8px 16px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; transition: all 0.2s; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
-    .btn-primary { background: #2563eb; color: white; }
-    .btn-primary:hover { background: #1d4ed8; }
-    .btn-success { background: #16a34a; color: white; }
-    .btn-danger { background: #dc2626; color: white; }
-    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn { padding: 9px 18px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .btn-primary { background: var(--primary-blue); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-success { background: var(--accent-green); color: white; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn:hover { opacity: 0.95; }
 
-    .dashboard-grid { display: grid; grid-template-columns: 340px 1fr; gap: 20px; }
-    @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+    .dashboard-grid { display: grid; grid-template-columns: 340px 1fr; gap: 24px; }
+    @media (max-width: 960px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
-    .panel { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 10px; padding: 18px; margin-bottom: 20px; }
-    .panel-title { font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .panel { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .panel-title { font-size: 13px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    .drop-zone { border: 2px dashed #475569; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: 0.2s; background: rgba(15, 23, 42, 0.5); }
-    .drop-zone:hover { border-color: var(--accent-blue); background: rgba(56, 189, 248, 0.05); }
-    .drop-icon { font-size: 26px; margin-bottom: 6px; color: var(--accent-blue); }
+    .drop-zone { border: 2px dashed #cbd5e1; border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; background: #f1f5f9; }
+    .drop-zone:hover { border-color: var(--primary-blue); background: #eff6ff; }
+    .drop-icon { font-size: 32px; margin-bottom: 8px; color: var(--primary-blue); }
     
-    .form-group { margin-top: 15px; }
-    .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; font-weight: 600; }
-    .form-control { width: 100%; background: #0f172a; border: 1px solid var(--panel-border); color: white; padding: 9px 12px; border-radius: 6px; font-size: 13px; }
-    .form-control[readonly] { background: #1e293b; color: var(--accent-blue); font-weight: bold; border-color: #475569; }
+    .form-group { margin-top: 16px; }
+    .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+    .form-control { width: 100%; background: #ffffff; border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 12px; border-radius: 8px; font-size: 13px; }
+    .form-control:focus { outline: none; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+    .form-control[readonly] { background: #f8fafc; color: var(--primary-blue); font-weight: 600; border-color: #cbd5e1; }
 
     .metrics-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
-    .metric-card { background: #0f172a; border: 1px solid var(--panel-border); border-radius: 8px; padding: 12px; text-align: center; }
-    .metric-label { font-size: 11px; color: var(--text-muted); font-weight: bold; text-transform: uppercase; margin-bottom: 6px; }
-    .metric-value { font-size: 18px; font-weight: bold; }
-    .metric-sub { font-size: 11px; margin-top: 2px; }
+    .metric-card { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; text-align: center; }
+    .metric-label { font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
+    .metric-value { font-size: 20px; font-weight: 800; }
+    .metric-sub { font-size: 11px; margin-top: 2px; font-weight: 600; }
 
-    .val-blue { color: var(--accent-blue); }
+    .val-blue { color: var(--primary-blue); }
     .val-green { color: var(--accent-green); }
     .val-red { color: var(--accent-red); }
     .val-purple { color: var(--accent-purple); }
 
-    .charts-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .charts-container { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media (max-width: 700px) { .charts-container { grid-template-columns: 1fr; } }
-    .chart-box { background: #0f172a; border: 1px solid var(--panel-border); border-radius: 8px; padding: 12px; height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .chart-box { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; height: 230px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-    th { background: #0f172a; color: var(--text-muted); text-align: left; padding: 10px; font-weight: 600; border-bottom: 1px solid var(--panel-border); }
-    td { padding: 10px; border-bottom: 1px solid #334155; color: #e2e8f0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+    th { background: #f1f5f9; color: var(--text-muted); text-align: left; padding: 10px; font-weight: 700; border-bottom: 2px solid var(--border-color); }
+    td { padding: 11px 10px; border-bottom: 1px solid var(--border-color); color: var(--text-main); }
+    tr:hover td { background: #f8fafc; }
 
-    .badge-resp { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; }
-    .resp-asesor { background: rgba(56, 189, 248, 0.2); color: var(--accent-blue); }
-    .resp-cliente { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); }
+    .badge-resp { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-block; }
+    .resp-asesor { background: #dbeafe; color: #1e40af; }
+    .resp-cliente { background: #dcfce7; color: #166534; }
 
-    .clickable-time { color: var(--accent-blue); text-decoration: underline; cursor: pointer; font-weight: bold; }
-    audio { width: 100%; margin-top: 15px; filter: invert(100%) hue-rotate(180deg); }
+    .clickable-time { color: var(--primary-blue); text-decoration: underline; cursor: pointer; font-weight: 700; }
+    audio { width: 100%; margin-top: 15px; border-radius: 8px; }
     .hidden { display: none !important; }
   </style>
 </head>
@@ -92,10 +97,10 @@
 
   <div class="dashboard-grid">
     
-    <!-- Unified Sidebar Panel -->
+    <!-- Sidebar -->
     <aside>
       <div class="panel">
-        <div class="panel-title">📁 Carga de Audio y Parámetros</div>
+        <div class="panel-title">📁 Carga de Audio y Datos</div>
         
         <div class="drop-zone" onclick="document.getElementById('audioInput').click()">
           <div class="drop-icon">🎙️</div>
@@ -111,12 +116,12 @@
         </div>
 
         <div class="form-group">
-          <label for="nombreAsesor">Nombre Asesor (Detección Automática)</label>
+          <label for="nombreAsesor">Nombre Asesor (Auto-detectado)</label>
           <input type="text" id="nombreAsesor" class="form-control" placeholder="Se detectará automáticamente..." readonly>
         </div>
 
         <div class="form-group">
-          <label for="nombreCliente">Nombre Cliente (Detección Automática)</label>
+          <label for="nombreCliente">Nombre Cliente (Auto-detectado)</label>
           <input type="text" id="nombreCliente" class="form-control" placeholder="Se detectará automáticamente..." readonly>
         </div>
 
@@ -126,9 +131,10 @@
       </div>
     </aside>
 
+    <!-- Main Results -->
     <main>
       <div id="placeholderMsg" class="panel" style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
-        <h3>Carga un archivo de audio e ingresa la SN / Código ID para iniciar el análisis interactivo.</h3>
+        <h3 style="font-weight: 500;">Carga un archivo de audio e ingresa la SN / Código ID para iniciar el análisis interactivo.</h3>
       </div>
 
       <div id="analysisContainer" class="hidden">
@@ -161,11 +167,11 @@
           <div class="panel-title">📈 Análisis de Participación y Tiempos de Silencio</div>
           <div class="charts-container">
             <div class="chart-box">
-              <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 5px;">Distribución de Tiempo</p>
+              <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px; font-weight: 700;">DISTRIBUCIÓN DE TIEMPO</p>
               <canvas id="chartTiempo"></canvas>
             </div>
             <div class="chart-box">
-              <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 5px;">Responsabilidad de Silencios (s)</p>
+              <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px; font-weight: 700;">RESPONSABILIDAD DE SILENCIOS (S)</p>
               <canvas id="chartResponsabilidad"></canvas>
             </div>
           </div>
@@ -193,8 +199,8 @@
         <div class="panel">
           <div class="panel-title">📱 Identificación de Líneas y Resumen de la Llamada</div>
           <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;" id="textLineas"></p>
-          <hr style="border-color: var(--panel-border); margin: 12px 0;">
-          <p style="font-size: 13px; line-height: 1.5;" id="textResumen"></p>
+          <hr style="border-color: var(--border-color); margin: 12px 0;">
+          <p style="font-size: 13px; line-height: 1.6;" id="textResumen"></p>
         </div>
 
         <div class="panel">
@@ -213,9 +219,9 @@
           </div>
         </div>
 
-        <div class="panel">
-          <div class="panel-title">💡 Sugerencia de Mejora para Calidad (QA)</div>
-          <p style="font-size: 13px; color: #facc15; line-height: 1.5;" id="textQA"></p>
+        <div class="panel" style="border-left: 4px solid var(--accent-amber);">
+          <div class="panel-title" style="color: var(--accent-amber);">💡 Sugerencia de Mejora para Calidad (QA)</div>
+          <p style="font-size: 13px; color: #92400e; line-height: 1.6;" id="textQA"></p>
         </div>
 
       </div>
@@ -231,7 +237,7 @@
     function mostrarNombreArchivo() {
       const input = document.getElementById('audioInput');
       if (input.files[0]) {
-        document.getElementById('fileNameText').innerText = "Archivo cargado: " + input.files[0].name;
+        document.getElementById('fileNameText').innerText = "Archivo listo: " + input.files[0].name;
       }
     }
 
@@ -246,7 +252,7 @@
       player.src = URL.createObjectURL(fileInput.files[0]);
       player.classList.remove('hidden');
 
-      document.getElementById('placeholderMsg').innerHTML = `<h3>Procesando audio e identificando participantes con IA... Por favor espera.</h3>`;
+      document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--primary-blue);">Procesando audio e identificando participantes con IA... Por favor espera.</h3>`;
 
       const formData = new FormData();
       formData.append('audio', fileInput.files[0]);
@@ -329,10 +335,10 @@
               data.metricas?.segCliente || 0,
               data.metricas?.segSilencio || 0
             ],
-            backgroundColor: ['#38bdf8', '#22c55e', '#ef4444']
+            backgroundColor: ['#2563eb', '#16a34a', '#dc2626']
           }]
         },
-        options: { plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } }, responsive: true, maintainAspectRatio: false }
+        options: { plugins: { legend: { labels: { color: '#64748b', font: { size: 10 } } } }, responsive: true, maintainAspectRatio: false }
       });
 
       const ctx2 = document.getElementById('chartResponsabilidad').getContext('2d');
@@ -347,13 +353,13 @@
               data.metricas?.silencioClienteSeg || 0,
               0
             ],
-            backgroundColor: '#38bdf8'
+            backgroundColor: '#2563eb'
           }]
         },
         options: {
           scales: {
-            x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
-            y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
+            x: { ticks: { color: '#64748b' }, grid: { display: false } },
+            y: { ticks: { color: '#64748b' }, grid: { color: '#e2e8f0' } }
           },
           plugins: { legend: { display: false } },
           responsive: true, maintainAspectRatio: false
@@ -382,7 +388,7 @@
       document.getElementById('btnExcel').classList.add('hidden');
       document.getElementById('btnLimpiar').classList.add('hidden');
       document.getElementById('placeholderMsg').classList.remove('hidden');
-      document.getElementById('placeholderMsg').innerHTML = `<h3>Carga un archivo de audio e ingresa la SN / Código ID para iniciar el análisis interactivo.</h3>`;
+      document.getElementById('placeholderMsg').innerHTML = `<h3 style="font-weight: 500;">Carga un archivo de audio e ingresa la SN / Código ID para iniciar el análisis interactivo.</h3>`;
       
       globalReportData = null;
     }
