@@ -3,56 +3,165 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AMISA - Generador de Reportes de Audio</title>
+  <title>AMISA - Análisis e Interacción de llamadas</title>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; color: #333; margin: 0; padding: 40px 20px; }
-    .container { max-width: 700px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    h1 { color: #2c3e50; margin-top: 0; }
-    .file-input { margin: 20px 0; }
-    input[type="file"] { display: block; margin-bottom: 15px; }
-    button { background-color: #0070f3; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
-    button:hover { background-color: #0051a2; }
-    #reporte { margin-top: 30px; padding: 20px; background: #f1f3f5; border-radius: 8px; white-space: pre-wrap; line-height: 1.6; }
+    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; color: #333; }
+    .container { max-width: 1000px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+    button { background: #0070f3; color: white; border: none; padding: 10px 18px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    button.clear { background: #d9534f; }
+    button.excel { background: #198754; }
+    button:hover { opacity: 0.9; }
+    audio { width: 100%; margin: 15px 0; }
+    .section-box { border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 20px; border-radius: 6px; background: #fafafa; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+    th, td { border: 1px solid #dddddd; text-align: left; padding: 8px; font-size: 14px; }
+    th { background-color: #f2f2f2; }
+    .clickable-time { color: #0070f3; text-decoration: underline; cursor: pointer; font-weight: bold; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Reportes de Audio con Gemini</h1>
-    <p>Sube un archivo de audio (.wav) para extraer datos y generar un reporte automático.</p>
+    <h2>Sistema de Evaluación y Análisis de Audios - AMISA</h2>
     
-    <div class="file-input">
+    <div class="controls">
       <input type="file" id="audioInput" accept="audio/wav, .wav">
-      <button onclick="procesarAudio()">Generar Reporte</button>
+      <button onclick="procesarAudio()">Generar Reporte Completo</button>
+      <button class="clear" onclick="limpiarPantalla()">Borrar / Nuevo Audio</button>
+      <button class="excel" id="btnExcel" onclick="descargarExcel()" style="display:none;">Descargar Excel</button>
     </div>
 
-    <div id="reporte">El reporte procesado aparecerá en esta sección...</div>
+    <audio id="audioPlayer" controls style="display:none;"></audio>
+
+    <div id="resultado" style="display:none;">
+      <div class="section-box" id="sec1"><h3>1. Resumen de Métricas de Tiempo y Porcentajes</h3><div id="data1"></div></div>
+      <div class="section-box" id="sec2"><h3>2. Identificación de Líneas Telefónicas</h3><div id="data2"></div></div>
+      <div class="section-box" id="sec3"><h3>3. Registro Detallado de Silencios, Intervalos y Responsabilidad</h3><div id="data3"></div></div>
+      <div class="section-box" id="sec4"><h3>4. Resumen Claro de la Llamada</h3><div id="data4"></div></div>
+      <div class="section-box" id="sec5"><h3>5. Transcripción Completa de la Llamada</h3><div id="data5"></div></div>
+      <div class="section-box" id="sec6"><h3>6. Sugerencia de Mejora para Calidad (QA)</h3><div id="data6"></div></div>
+    </div>
   </div>
 
   <script>
+    let globalReportData = null;
+
     async function procesarAudio() {
       const fileInput = document.getElementById('audioInput');
-      const reporteDiv = document.getElementById('reporte');
+      const player = document.getElementById('audioPlayer');
       
-      if (!fileInput.files[0]) {
-        return alert('Por favor selecciona un archivo .wav');
-      }
+      if (!fileInput.files[0]) return alert('Selecciona un archivo .wav');
 
-      reporteDiv.innerText = "Procesando audio con Gemini, por favor espera...";
-      
+      player.src = URL.createObjectURL(fileInput.files[0]);
+      player.style.display = 'block';
+
+      document.getElementById('data1').innerText = "Procesando audio y calculando silencios (VAD)... Por favor espera.";
+      document.getElementById('resultado').style.display = 'block';
+
       const formData = new FormData();
       formData.append('audio', fileInput.files[0]);
 
       try {
         const res = await fetch('/api/procesar', { method: 'POST', body: formData });
         const data = await res.json();
+        
         if (data.error) {
-          reporteDiv.innerText = "Error: " + data.error;
+          alert("Error: " + data.error);
         } else {
-          reporteDiv.innerText = data.reporte;
+          globalReportData = data.reporteJSON;
+          renderizarReporte(globalReportData);
+          document.getElementById('btnExcel').style.display = 'inline-block';
         }
-      } catch (err) {
-        reporteDiv.innerText = "Error de conexión: " + err.message;
+      } catch (e) {
+        alert("Error de conexión: " + e.message);
       }
+    }
+
+    function saltarA(segundos) {
+      const player = document.getElementById('audioPlayer');
+      player.currentTime = segundos;
+      player.play();
+    }
+
+    function renderizarReporte(data) {
+      document.getElementById('data1').innerHTML = `<pre>${data.metricas}</pre>`;
+      document.getElementById('data2').innerHTML = `<p>${data.lineas}</p>`;
+      
+      // Tabla interactiva de Silencios (Sección 3)
+      let htmlSilencios = `<table><tr><th>#</th><th>Inicia</th><th>Termina</th><th>Duración</th><th>Responsable</th><th>Causa / Motivo</th></tr>`;
+      data.silencios.forEach(s => {
+        htmlSilencios += `<tr>
+          <td>${s.num}</td>
+          <td><span class="clickable-time" onclick="saltarA(${s.iniciaSeg})">${s.inicia}</span></td>
+          <td>${s.termina}</td>
+          <td>${s.duracion}</td>
+          <td>${s.responsable}</td>
+          <td>${s.causa}</td>
+        </tr>`;
+      });
+      htmlSilencios += `</table>`;
+      document.getElementById('data3').innerHTML = htmlSilencios;
+
+      document.getElementById('data4').innerHTML = `<p>${data.resumen}</p>`;
+
+      // Tabla Transcripción (Sección 5)
+      let htmlTrans = `<table><tr><th>Tiempo</th><th>Hablante</th><th>Diálogo / Transcripción</th></tr>`;
+      data.transcripcion.forEach(t => {
+        htmlTrans += `<tr><td>${t.tiempo}</td><td>${t.hablante}</td><td>${t.dialogo}</td></tr>`;
+      });
+      htmlTrans += `</table>`;
+      document.getElementById('data5').innerHTML = htmlTrans;
+
+      document.getElementById('data6').innerHTML = `<p>${data.qa}</p>`;
+    }
+
+    function limpiarPantalla() {
+      document.getElementById('audioInput').value = "";
+      document.getElementById('audioPlayer').pause();
+      document.getElementById('audioPlayer').style.display = "none";
+      document.getElementById('resultado').style.display = "none";
+      document.getElementById('btnExcel').style.display = "none";
+      globalReportData = null;
+    }
+
+    function descargarExcel() {
+      if (!globalReportData) return alert("No hay datos para exportar.");
+      
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+      
+      csvContent += "1. Resumen de Metricasi de Tiempo y Porcentajes\n";
+      csvContent += `"${globalReportData.metricas.replace(/"/g, '""')}"\n\n`;
+
+      csvContent += "2. Identificación de Líneas Telefónicas\n";
+      csvContent += `"${globalReportData.lineas.replace(/"/g, '""')}"\n\n`;
+
+      csvContent += "3. Registro Detallado de Silencios, Intervalos y Responsabilidad\n";
+      csvContent += "Inicia,Termina,Duración,Responsable,Causa / Motivo\n";
+      globalReportData.silencios.forEach(s => {
+        csvContent += `"${s.inicia}","${s.termina}","${s.duracion}","${s.responsable}","${s.causa}"\n`;
+      });
+      csvContent += "\n";
+
+      csvContent += "4. Resumen Claro de la Llamada\n";
+      csvContent += `"${globalReportData.resumen.replace(/"/g, '""')}"\n\n`;
+
+      csvContent += "5. Transcripción Completa de la Llamada\n";
+      csvContent += "Tiempo,Hablante,Diálogo\n";
+      globalReportData.transcripcion.forEach(t => {
+        csvContent += `"${t.tiempo}","${t.hablante}","${t.dialogo.replace(/"/g, '""')}"\n`;
+      });
+      csvContent += "\n";
+
+      csvContent += "6. Sugerencia de Mejora para Calidad (QA)\n";
+      csvContent += `"${globalReportData.qa.replace(/"/g, '""')}"\n`;
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "Reporte_Calidad_Llamada.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   </script>
 </body>
