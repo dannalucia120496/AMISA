@@ -13,7 +13,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método no permitido' });
   }
 
-  const form = formidable({});
+  const form = formidable({
+    maxFileSize: 20 * 1024 * 1024, // 20MB
+  });
   
   try {
     const [fields, files] = await form.parse(req);
@@ -28,7 +30,7 @@ export default async function handler(req, res) {
 
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     
-    const prompt = `Analiza detalladamente este audio en formato WAV y extrae la información en un formato JSON estricto con la siguiente estructura:
+    const prompt = `Analiza detalladamente este audio en formato WAV y extrae la información con la siguiente estructura JSON:
     {
       "metricas": "Métricas resumidas de tiempos (hablado, silencio >3s, porcentajes, desglose de responsabilidad)",
       "lineas": "Identificación de líneas telefónicas, titulares, ofertas y trámites realizados.",
@@ -40,11 +42,10 @@ export default async function handler(req, res) {
         {"tiempo": "00:00 - 00:01", "hablante": "Asesora", "dialogo": "Aló, hola..."}
       ],
       "qa": "Sugerencias de mejora para el control de calidad (frases de espera, pausas CRM, etc.)"
-    }
-    Responde ÚNICAMENTE con el objeto JSON válido.`;
+    }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-1.5-flash',
       contents: [
         {
           inlineData: {
@@ -53,14 +54,15 @@ export default async function handler(req, res) {
           }
         },
         prompt
-      ]
+      ],
+      config: {
+        responseMimeType: 'application/json'
+      }
     });
 
-    let cleanedText = response.text.replace(/```json|```/g, '').trim();
-    const reporteJSON = JSON.parse(cleanedText);
-
+    const reporteJSON = JSON.parse(response.text);
     return res.status(200).json({ reporteJSON });
   } catch (error) {
-    return res.status(500).json({ error: 'Error procesando el audio: ' + error.message });
+    return res.status(500).json({ error: 'Error al procesar el audio: ' + error.message });
   }
 }
