@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   }
 
   const form = formidable({
-    maxFileSize: 20 * 1024 * 1024, // 20MB
+    maxFileSize: 50 * 1024 * 1024, // Permite archivos de hasta 50MB
   });
   
   try {
@@ -30,9 +30,24 @@ export default async function handler(req, res) {
 
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     
-    const prompt = `Analiza detalladamente este audio en formato WAV y extrae la información con la siguiente estructura JSON:
+    const prompt = `Analiza detalladamente este audio de llamada de callcenter y extrae la información en un formato JSON estricto con la siguiente estructura exacta:
     {
-      "metricas": "Métricas resumidas de tiempos (hablado, silencio >3s, porcentajes, desglose de responsabilidad)",
+      "participantes": {
+        "asesor": "Nombre completo del asesor o asesora mencionado en la llamada",
+        "cliente": "Nombre completo del cliente o titular mencionado en la llamada"
+      },
+      "metricas": {
+        "tiempoTotal": "16:54 min",
+        "tiempoHablado": "15:49 min",
+        "porcHablado": "93.6%",
+        "tiempoSilencio": "01:04 min",
+        "porcSilencio": "6.4%",
+        "segAsesor": 500,
+        "segCliente": 449,
+        "segSilencio": 65,
+        "silencioAsesorSeg": 52.5,
+        "silencioClienteSeg": 12.0
+      },
       "lineas": "Identificación de líneas telefónicas, titulares, ofertas y trámites realizados.",
       "silencios": [
         {"num": 1, "inicia": "01:59", "iniciaSeg": 119, "termina": "02:04", "duracion": "5.0 seg", "responsable": "Cliente", "causa": "Búsqueda de número..."}
@@ -63,6 +78,6 @@ export default async function handler(req, res) {
     const reporteJSON = JSON.parse(response.text);
     return res.status(200).json({ reporteJSON });
   } catch (error) {
-    return res.status(500).json({ error: 'Error al procesar el audio: ' + error.message });
+    return res.status(500).json({ error: 'Error procesando el audio: ' + error.message });
   }
 }
