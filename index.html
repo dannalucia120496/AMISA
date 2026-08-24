@@ -7,6 +7,9 @@
   <style>
     body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; color: #333; }
     .container { max-width: 1000px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+    .input-group label { font-weight: bold; font-size: 14px; }
+    .input-group input[type="text"] { padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; width: 100%; max-width: 300px; }
     .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
     button { background: #0070f3; color: white; border: none; padding: 10px 18px; border-radius: 5px; cursor: pointer; font-weight: bold; }
     button.clear { background: #d9534f; }
@@ -18,12 +21,18 @@
     th, td { border: 1px solid #dddddd; text-align: left; padding: 8px; font-size: 14px; }
     th { background-color: #f2f2f2; }
     .clickable-time { color: #0070f3; text-decoration: underline; cursor: pointer; font-weight: bold; }
+    .metadata-card { background: #eef2f5; padding: 12px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #0070f3; }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Sistema de Evaluación y Análisis de Audios - AMISA</h2>
     
+    <div class="input-group">
+      <label for="codigoID">SN o Código ID de la Llamada / Auditoría (*):</label>
+      <input type="text" id="codigoID" placeholder="Ej: SN-903007688 / ID-2026-X" required>
+    </div>
+
     <div class="controls">
       <input type="file" id="audioInput" accept="audio/wav, .wav">
       <button onclick="procesarAudio()">Generar Reporte Completo</button>
@@ -34,6 +43,11 @@
     <audio id="audioPlayer" controls style="display:none;"></audio>
 
     <div id="resultado" style="display:none;">
+      <div class="metadata-card">
+        <p style="margin: 4px 0;"><strong>N° de Audio Procesado:</strong> <span id="dataNumAudio"></span></p>
+        <p style="margin: 4px 0;"><strong>SN / Código ID:</strong> <span id="dataID"></span></p>
+      </div>
+
       <div class="section-box" id="sec1"><h3>1. Resumen de Métricas de Tiempo y Porcentajes</h3><div id="data1"></div></div>
       <div class="section-box" id="sec2"><h3>2. Identificación de Líneas Telefónicas</h3><div id="data2"></div></div>
       <div class="section-box" id="sec3"><h3>3. Registro Detallado de Silencios, Intervalos y Responsabilidad</h3><div id="data3"></div></div>
@@ -45,16 +59,27 @@
 
   <script>
     let globalReportData = null;
+    let globalID = "";
+    let contadorAudios = 0;
+    let numeroAudioActual = 0;
 
     async function procesarAudio() {
+      const codigoInput = document.getElementById('codigoID').value.trim();
       const fileInput = document.getElementById('audioInput');
       const player = document.getElementById('audioPlayer');
       
+      if (!codigoInput) return alert('Por favor ingresa la SN o Código ID antes de procesar.');
       if (!fileInput.files[0]) return alert('Selecciona un archivo .wav');
+
+      globalID = codigoInput;
+      contadorAudios++;
+      numeroAudioActual = contadorAudios;
 
       player.src = URL.createObjectURL(fileInput.files[0]);
       player.style.display = 'block';
 
+      document.getElementById('dataNumAudio').innerText = numeroAudioActual;
+      document.getElementById('dataID').innerText = globalID;
       document.getElementById('data1').innerText = "Procesando audio y calculando silencios (VAD)... Por favor espera.";
       document.getElementById('resultado').style.display = 'block';
 
@@ -87,7 +112,6 @@
       document.getElementById('data1').innerHTML = `<pre>${data.metricas}</pre>`;
       document.getElementById('data2').innerHTML = `<p>${data.lineas}</p>`;
       
-      // Tabla interactiva de Silencios (Sección 3)
       let htmlSilencios = `<table><tr><th>#</th><th>Inicia</th><th>Termina</th><th>Duración</th><th>Responsable</th><th>Causa / Motivo</th></tr>`;
       data.silencios.forEach(s => {
         htmlSilencios += `<tr>
@@ -104,7 +128,6 @@
 
       document.getElementById('data4').innerHTML = `<p>${data.resumen}</p>`;
 
-      // Tabla Transcripción (Sección 5)
       let htmlTrans = `<table><tr><th>Tiempo</th><th>Hablante</th><th>Diálogo / Transcripción</th></tr>`;
       data.transcripcion.forEach(t => {
         htmlTrans += `<tr><td>${t.tiempo}</td><td>${t.hablante}</td><td>${t.dialogo}</td></tr>`;
@@ -116,12 +139,14 @@
     }
 
     function limpiarPantalla() {
+      document.getElementById('codigoID').value = "";
       document.getElementById('audioInput').value = "";
       document.getElementById('audioPlayer').pause();
       document.getElementById('audioPlayer').style.display = "none";
       document.getElementById('resultado').style.display = "none";
       document.getElementById('btnExcel').style.display = "none";
       globalReportData = null;
+      globalID = "";
     }
 
     function descargarExcel() {
@@ -129,7 +154,10 @@
       
       let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
       
-      csvContent += "1. Resumen de Metricasi de Tiempo y Porcentajes\n";
+      csvContent += `N° DE AUDIO PROCESADO,${numeroAudioActual}\n`;
+      csvContent += `SN / CODIGO ID,${globalID}\n\n`;
+
+      csvContent += "1. Resumen de Métricas de Tiempo y Porcentajes\n";
       csvContent += `"${globalReportData.metricas.replace(/"/g, '""')}"\n\n`;
 
       csvContent += "2. Identificación de Líneas Telefónicas\n";
@@ -158,7 +186,7 @@
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
       link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "Reporte_Calidad_Llamada.csv");
+      link.setAttribute("download", `Reporte_Audio_${numeroAudioActual}_${globalID}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
