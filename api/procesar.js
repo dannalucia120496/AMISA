@@ -59,8 +59,9 @@ export default async function handler(req, res) {
       "qa": "Sugerencias de mejora para el control de calidad (frases de espera, pausas CRM, etc.)"
     }`;
 
+    // AQUÍ ESTÁ EL CAMBIO SOLICITADO POR LA API
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: [
         {
           inlineData: {
