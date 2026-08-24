@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   }
 
   const form = formidable({
-    maxFileSize: 50 * 1024 * 1024, // Permite archivos de hasta 50MB
+    maxFileSize: 50 * 1024 * 1024, // 50MB
   });
   
   try {
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
     }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       contents: [
         {
           inlineData: {
