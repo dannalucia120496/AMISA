@@ -102,6 +102,13 @@
       <div class="panel">
         <div class="panel-title">📁 Carga de Audio y Datos</div>
         
+        <!-- Configuración API -->
+        <div class="form-group" style="background: #eff6ff; padding: 12px; border-radius: 8px; border: 1px dashed #2563eb; margin-bottom: 16px;">
+          <label for="apiKey" style="color: #1e40af; margin-bottom: 4px;">🔑 Gemini API Key (Procesamiento Directo)</label>
+          <input type="password" id="apiKey" class="form-control" placeholder="Pega tu API Key aquí">
+          <small style="font-size: 10.5px; color: #1d4ed8; margin-top: 4px; display: block;">Evita límites de tamaño. Se guarda en tu navegador.</small>
+        </div>
+
         <div class="drop-zone" onclick="document.getElementById('audioInput').click()">
           <div class="drop-icon">🎙️</div>
           <p style="font-size: 12px; color: var(--text-muted);" id="fileNameText">Haz clic para seleccionar tu audio (.wav, .mp3)</p>
@@ -125,7 +132,7 @@
           <input type="text" id="nombreCliente" class="form-control" placeholder="Se detectará automáticamente..." readonly>
         </div>
 
-        <button class="btn btn-primary" style="width: 100%; margin-top: 20px; justify-content: center; padding: 12px;" onclick="procesarAudio()">
+        <button class="btn btn-primary" style="width: 100%; margin-top: 20px; justify-content: center; padding: 12px;" onclick="procesarAudioClientSide()">
           ⚡ Procesar y Analizar Audio
         </button>
       </div>
@@ -134,7 +141,7 @@
     <!-- Main Results -->
     <main>
       <div id="placeholderMsg" class="panel" style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
-        <h3 style="font-weight: 500;">Carga un archivo de audio e ingresa la SN / Código ID para iniciar el análisis interactivo.</h3>
+        <h3 style="font-weight: 500;">Carga un archivo de audio e ingresa la SN / Código ID para iniciar el análisis.</h3>
       </div>
 
       <div id="analysisContainer" class="hidden">
@@ -234,6 +241,12 @@
     let chart1 = null;
     let chart2 = null;
 
+    // Recuperar API Key al cargar
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedKey = localStorage.getItem("gemini_api_key");
+      if (savedKey) document.getElementById("apiKey").value = savedKey;
+    });
+
     function mostrarNombreArchivo() {
       const input = document.getElementById('audioInput');
       if (input.files[0]) {
@@ -241,35 +254,113 @@
       }
     }
 
-    async function procesarAudio() {
-      const fileInput = document.getElementById('audioInput');
+    async function procesarAudioClientSide() {
+      const apiKey = document.getElementById('apiKey').value.trim();
       const codigoID = document.getElementById('codigoID').value.trim();
+      const fileInput = document.getElementById('audioInput');
 
+      if (!apiKey) return alert('Por favor ingresa tu Gemini API Key.');
       if (!codigoID) return alert('Por favor ingresa la SN o Código ID de la llamada.');
       if (!fileInput.files[0]) return alert('Por favor selecciona un archivo de audio.');
 
+      // Guardar la API Key
+      localStorage.setItem("gemini_api_key", apiKey);
+
+      const file = fileInput.files[0];
       const player = document.getElementById('audioPlayer');
-      player.src = URL.createObjectURL(fileInput.files[0]);
+      player.src = URL.createObjectURL(file);
       player.classList.remove('hidden');
 
-      document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--primary-blue);">Procesando audio e identificando participantes con IA... Por favor espera.</h3>`;
-
-      const formData = new FormData();
-      formData.append('audio', fileInput.files[0]);
+      document.getElementById('placeholderMsg').classList.remove('hidden');
+      document.getElementById('analysisContainer').classList.add('hidden');
+      document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--primary-blue);">⏳ Subiendo archivo de audio a Google... (Puede tardar si el archivo es pesado)</h3>`;
 
       try {
-        const res = await fetch('/api/procesar', { method: 'POST', body: formData });
-        const data = await res.json();
+        // PASO 1: Subir archivo a la File API de Gemini
+        const uploadUrl = `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`;
+        const mimeType = file.type || 'audio/wav';
+        
+        const uploadHeaders = {
+          'X-Goog-Upload-Command': 'start, upload, finalize',
+          'X-Goog-Upload-Header-Content-Length': file.size.toString(),
+          'X-Goog-Upload-Header-Content-Type': mimeType,
+          'Content-Type': mimeType
+        };
 
-        if (data.error) {
-          alert("Error: " + data.error);
-          document.getElementById('placeholderMsg').innerHTML = `<h3>Ocurrió un error al procesar. Intenta nuevamente.</h3>`;
-        } else {
-          globalReportData = data.reporteJSON;
-          renderDashboard(globalReportData);
+        const uploadRes = await fetch(uploadUrl, {
+          method: 'POST',
+          headers: uploadHeaders,
+          body: file
+        });
+
+        if (!uploadRes.ok) {
+           const errTxt = await uploadRes.text();
+           throw new Error("Error en la subida a Gemini: " + errTxt);
         }
-      } catch (e) {
-        alert("Error de conexión: " + e.message);
+
+        const uploadData = await uploadRes.json();
+        const fileUri = uploadData.file.uri;
+
+        document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--accent-green);">✅ Audio subido. Analizando conversación con gemini-3.6-flash...</h3>`;
+
+        // PASO 2: Generar contenido con el URI del archivo
+        const generateUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+        const promptTexto = `Analiza detalladamente este audio de llamada de callcenter y extrae la información en un formato JSON estricto con la siguiente estructura exacta:
+        {
+          "participantes": {
+            "asesor": "Nombre del asesor en la llamada",
+            "cliente": "Nombre del cliente en la llamada"
+          },
+          "metricas": {
+            "tiempoTotal": "16:54 min",
+            "tiempoHablado": "15:49 min",
+            "porcHablado": "93.6%",
+            "tiempoSilencio": "01:04 min",
+            "porcSilencio": "6.4%",
+            "segAsesor": 500,
+            "segCliente": 449,
+            "segSilencio": 65,
+            "silencioAsesorSeg": 52.5,
+            "silencioClienteSeg": 12.0
+          },
+          "lineas": "Identificación de líneas telefónicas...",
+          "silencios": [
+            {"num": 1, "inicia": "01:59", "iniciaSeg": 119, "termina": "02:04", "duracion": "5.0 seg", "responsable": "Cliente", "causa": "Búsqueda..."}
+          ],
+          "resumen": "Resumen narrativo...",
+          "transcripcion": [
+            {"tiempo": "00:00 - 00:01", "hablante": "Asesora", "dialogo": "Aló..."}
+          ],
+          "qa": "Sugerencias de mejora..."
+        }`;
+
+        const bodyData = {
+          contents: [{
+            parts: [
+              { fileData: { mimeType: mimeType, fileUri: fileUri } },
+              { text: promptTexto }
+            ]
+          }],
+          generationConfig: { responseMimeType: "application/json" }
+        };
+
+        const genRes = await fetch(generateUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bodyData)
+        });
+
+        if (!genRes.ok) throw new Error("Error analizando el audio con IA.");
+
+        const genData = await genRes.json();
+        const jsonText = genData.candidates[0].content.parts[0].text;
+        
+        globalReportData = JSON.parse(jsonText);
+        renderDashboard(globalReportData);
+
+      } catch (error) {
+        alert(error.message);
+        document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--accent-red);">❌ Ocurrió un error. Revisa tu API Key y tu conexión.</h3>`;
       }
     }
 
@@ -388,7 +479,7 @@
       document.getElementById('btnExcel').classList.add('hidden');
       document.getElementById('btnLimpiar').classList.add('hidden');
       document.getElementById('placeholderMsg').classList.remove('hidden');
-      document.getElementById('placeholderMsg').innerHTML = `<h3 style="font-weight: 500;">Carga un archivo de audio e ingresa la SN / Código ID para iniciar el análisis interactivo.</h3>`;
+      document.getElementById('placeholderMsg').innerHTML = `<h3 style="font-weight: 500;">Carga un archivo de audio e ingresa la SN / Código ID para iniciar el análisis.</h3>`;
       
       globalReportData = null;
     }
