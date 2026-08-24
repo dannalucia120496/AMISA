@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AMISA - Generador de Reportes de Audio</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; color: #333; margin: 0; padding: 40px 20px; }
+    .container { max-width: 700px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    h1 { color: #2c3e50; margin-top: 0; }
+    .file-input { margin: 20px 0; }
+    input[type="file"] { display: block; margin-bottom: 15px; }
+    button { background-color: #0070f3; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+    button:hover { background-color: #0051a2; }
+    #reporte { margin-top: 30px; padding: 20px; background: #f1f3f5; border-radius: 8px; white-space: pre-wrap; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Reportes de Audio con Gemini</h1>
+    <p>Sube un archivo de audio (.wav) para extraer datos y generar un reporte automático.</p>
+    
+    <div class="file-input">
+      <input type="file" id="audioInput" accept="audio/wav, .wav">
+      <button onclick="procesarAudio()">Generar Reporte</button>
+    </div>
+
+    <div id="reporte">El reporte procesado aparecerá en esta sección...</div>
+  </div>
+
+  <script>
+    async function procesarAudio() {
+      const fileInput = document.getElementById('audioInput');
+      const reporteDiv = document.getElementById('reporte');
+      
+      if (!fileInput.files[0]) {
+        return alert('Por favor selecciona un archivo .wav');
+      }
+
+      reporteDiv.innerText = "Procesando audio con Gemini, por favor espera...";
+      
+      const formData = new FormData();
+      formData.append('audio', fileInput.files[0]);
+
+      try {
+        const res = await fetch('/api/procesar', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.error) {
+          reporteDiv.innerText = "Error: " + data.error;
+        } else {
+          reporteDiv.innerText = data.reporte;
+        }
+      } catch (err) {
+        reporteDiv.innerText = "Error de conexión: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
