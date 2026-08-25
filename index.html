@@ -323,7 +323,7 @@
         const apiKey = (await keyRes.json()).key;
         if (!apiKey) throw new Error("API Key no configurada.");
 
-        // 1. Subir Archivo
+        // 1. Subir Archivo usando File API v1beta
         const uploadRes = await fetch(`https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`, {
           method: 'POST',
           headers: { 'X-Goog-Upload-Command': 'start, upload, finalize', 'X-Goog-Upload-Header-Content-Length': file.size.toString(), 'X-Goog-Upload-Header-Content-Type': file.type || 'audio/wav', 'Content-Type': file.type || 'audio/wav' },
@@ -367,8 +367,8 @@
         // 2. DARLE UN RESPÍRO A LA IA: Pausa de 4 segundos para que Google procese audios pesados
         await new Promise(resolve => setTimeout(resolve, 4000));
 
-        // 3. Solicitar Análisis (MODELO ACTUALIZADO AQUÍ)
-        const genRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
+        // 3. Solicitar Análisis usando el modelo universal garantizado
+        const genRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contents: [{ parts: [{ fileData: { mimeType: file.type||'audio/wav', fileUri: fileUri } }, { text: promptTexto }] }], generationConfig: { responseMimeType: "application/json" } })
         });
