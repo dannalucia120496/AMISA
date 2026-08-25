@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Analizador VAD & Transcripción de Llamadas - GEA QA TOOL</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Plugin para mostrar los números sobre los gráficos -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <style>
     :root {
@@ -24,34 +23,34 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: var(--bg-body); color: var(--text-main); padding: 24px; }
+    body { background-color: var(--bg-body); color: var(--text-main); padding: 20px; }
 
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--border-color); }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border-color); }
     .brand { display: flex; align-items: center; gap: 12px; }
     .badge { background: linear-gradient(135deg, #2563eb, #0284c7); color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
-    header h1 { font-size: 22px; font-weight: 700; color: var(--text-main); }
-    .top-actions { display: flex; gap: 10px; }
+    header h1 { font-size: 20px; font-weight: 700; color: var(--text-main); }
+    .top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-    .btn { padding: 9px 18px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; }
+    .btn { padding: 8px 16px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
     .btn-primary { background: var(--primary-blue); color: white; }
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-success { background: var(--accent-green); color: white; }
     .btn-danger { background: #ef4444; color: white; }
     .btn:hover { opacity: 0.95; }
 
-    .dashboard-grid { display: grid; grid-template-columns: 340px 1fr; gap: 24px; }
+    .dashboard-grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
     @media (max-width: 960px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
-    .panel { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-    .panel-title { font-size: 13px; font-weight: 800; color: var(--accent-cyan); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .panel { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 18px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .panel-title { font-size: 12px; font-weight: 800; color: var(--accent-cyan); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    .drop-zone { border: 2px dashed #cbd5e1; border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; background: #f1f5f9; }
+    .drop-zone { border: 2px dashed #cbd5e1; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: #f1f5f9; }
     .drop-zone:hover { border-color: var(--primary-blue); background: #eff6ff; }
-    .drop-icon { font-size: 32px; margin-bottom: 8px; color: var(--primary-blue); }
+    .drop-icon { font-size: 28px; margin-bottom: 8px; color: var(--primary-blue); }
     
-    .form-group { margin-top: 16px; }
-    .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
-    .form-control { width: 100%; background: #ffffff; border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 12px; border-radius: 8px; font-size: 13px; }
+    .form-group { margin-top: 12px; }
+    .form-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 700; text-transform: uppercase; }
+    .form-control { width: 100%; background: #ffffff; border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 10px; border-radius: 6px; font-size: 12px; }
     .form-control:focus { outline: none; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
     .form-control[readonly] { background: #f8fafc; color: var(--primary-blue); font-weight: 600; }
 
@@ -70,13 +69,13 @@
     @media (max-width: 700px) { .charts-container { grid-template-columns: 1fr; } }
     .chart-box { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-    th { background: #f1f5f9; color: var(--text-muted); text-align: left; padding: 10px; font-weight: 700; border-bottom: 2px solid var(--border-color); }
-    td { padding: 11px 10px; border-bottom: 1px solid var(--border-color); color: var(--text-main); }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+    th { background: #f1f5f9; color: var(--text-muted); text-align: left; padding: 8px; font-weight: 700; border-bottom: 2px solid var(--border-color); }
+    td { padding: 8px; border-bottom: 1px solid var(--border-color); color: var(--text-main); }
     
-    .edit-input { width: 70px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; font-weight: bold; }
-    .edit-select { padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; }
-    .btn-delete { background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    .edit-input { width: 65px; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; font-weight: bold; font-size: 12px; }
+    .edit-select { padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 11px; }
+    .btn-delete { background: #ef4444; color: white; border: none; padding: 4px 6px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
     ul.lista-lineas { padding-left: 20px; line-height: 1.6; color: var(--text-muted); margin-bottom: 0; }
     ul.lista-lineas li { margin-bottom: 8px; }
@@ -91,10 +90,11 @@
   <header>
     <div class="brand">
       <span class="badge">GEA QA TOOL</span>
-      <h1>Analizador VAD & Transcripción de Llamadas</h1>
+      <h1>Analizador VAD & Transcripción</h1>
     </div>
     <div class="top-actions">
-      <button class="btn btn-success hidden" id="btnExcel" onclick="descargarExcel()">📊 Exportar Reporte CSV</button>
+      <button class="btn btn-primary" onclick="descargarBDHistorica()">📥 Descargar BD Histórica</button>
+      <button class="btn btn-success hidden" id="btnExcel" onclick="guardarYExportarReporte()">📊 Guardar y Exportar CSV</button>
       <button class="btn btn-danger hidden" id="btnLimpiar" onclick="limpiarPantalla()">🗑️ Nuevo Audio</button>
     </div>
   </header>
@@ -104,33 +104,52 @@
     <!-- Sidebar -->
     <aside>
       <div class="panel">
-        <div class="panel-title">📁 Carga de Audio y Datos</div>
+        <div class="panel-title">📁 Carga de Datos y Audio</div>
+
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label for="fechaLlamada">Fecha de Llamada (*)</label>
+          <input type="date" id="fechaLlamada" class="form-control" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label for="codigoID">SN / Código ID de la Llamada (*)</label>
+          <input type="text" id="codigoID" class="form-control" placeholder="Ej: 1787595589118348" required>
+          <small style="color: var(--accent-red); font-size: 10px; font-weight: 600;">* Solo números</small>
+        </div>
 
         <div class="drop-zone" onclick="document.getElementById('audioInput').click()">
           <div class="drop-icon">🎙️</div>
-          <p style="font-size: 12px; color: var(--text-muted);" id="fileNameText">Haz clic para seleccionar tu audio (.wav, .mp3)</p>
+          <p style="font-size: 11px; color: var(--text-muted);" id="fileNameText">Haz clic para seleccionar tu audio (.wav, .mp3)</p>
           <input type="file" id="audioInput" accept="audio/*" class="hidden" onchange="mostrarNombreArchivo()">
         </div>
         <audio id="audioPlayer" controls class="hidden"></audio>
 
         <div class="form-group">
-          <label for="codigoID">SN / Código ID de la Llamada (*)</label>
-          <input type="text" id="codigoID" class="form-control" placeholder="Ej: 1787595589118348">
-          <small style="color: var(--accent-red); font-size: 10.5px; display: block; margin-top: 4px; font-weight: 600;">* Solo números permitidos</small>
+          <label>Nombre Asesor</label>
+          <input type="text" id="nombreAsesor" class="form-control" placeholder="Auto-detectado o manual">
         </div>
 
         <div class="form-group">
-          <label>Nombre Asesor (Auto-detectado)</label>
-          <input type="text" id="nombreAsesor" class="form-control" readonly>
+          <label>Nombre Cliente</label>
+          <input type="text" id="nombreCliente" class="form-control" placeholder="Auto-detectado o manual">
         </div>
 
+        <!-- Nuevos campos -->
         <div class="form-group">
-          <label>Nombre Cliente (Auto-detectado)</label>
-          <input type="text" id="nombreCliente" class="form-control" readonly>
+          <label>Número en Consulta</label>
+          <input type="text" id="numeroConsulta" class="form-control" placeholder="Si se detecta...">
+        </div>
+        <div class="form-group">
+          <label>DNI del Cliente</label>
+          <input type="text" id="dniCliente" class="form-control" placeholder="Si se detecta...">
+        </div>
+        <div class="form-group">
+          <label>Tipo de Operación</label>
+          <input type="text" id="tipoOperacion" class="form-control" placeholder="Renovación, Migración...">
         </div>
 
-        <button class="btn btn-primary" style="width: 100%; margin-top: 20px; justify-content: center; padding: 12px;" onclick="procesarAudioClientSide()">
-          ⚡ Procesar y Analizar Audio
+        <button class="btn btn-primary" style="width: 100%; margin-top: 15px; justify-content: center; padding: 12px;" onclick="procesarAudioClientSide()">
+          ⚡ Procesar Audio con IA
         </button>
       </div>
     </aside>
@@ -138,7 +157,7 @@
     <!-- Main Results -->
     <main>
       <div id="placeholderMsg" class="panel" style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
-        <h3 style="font-weight: 500;">Carga un archivo e ingresa el SN para iniciar el análisis interactivo.</h3>
+        <h3 style="font-weight: 500;">Completa los datos y carga un archivo para iniciar la auditoría.</h3>
       </div>
 
       <div id="analysisContainer" class="hidden">
@@ -185,20 +204,23 @@
 
         <!-- Tabla Editable -->
         <div class="panel">
-          <div class="panel-title">⏱️ Registro Detallado de Silencios (Editable)</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div class="panel-title" style="margin-bottom: 0;">⏱️ Registro Detallado de Silencios (Editable)</div>
+            <button class="btn btn-primary" style="font-size: 11px; padding: 5px 10px;" onclick="agregarFilaSilencio()">➕ Añadir Silencio Manual</button>
+          </div>
           <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
-            Modifica la duración, el responsable o elimina filas. Los cálculos y gráficos se actualizarán automáticamente.
+            Modifica la duración, el responsable, o agrega filas si el monitor detecta pausas no identificadas. Todo se recalcula en vivo.
           </p>
           <div style="overflow-x: auto;">
             <table>
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Inicia</th>
-                  <th>Termina</th>
+                  <th>Inicia (Min/Seg)</th>
+                  <th>Termina (Min/Seg)</th>
                   <th>Duración (seg)</th>
                   <th>Responsable</th>
-                  <th>Causa / Descripción</th>
+                  <th>Causa / Descripción (Editable)</th>
                   <th>Acción</th>
                 </tr>
               </thead>
@@ -212,7 +234,7 @@
           <div class="panel-title">📱 Identificación de Líneas y Resumen de la Llamada</div>
           <div id="textLineas"></div>
           <hr style="border-color: var(--border-color); margin: 16px 0;">
-          <p style="font-size: 14px; color: var(--text-main); line-height: 1.6;" id="textResumen"></p>
+          <p style="font-size: 13.5px; color: var(--text-main); line-height: 1.6;" id="textResumen"></p>
         </div>
 
         <!-- Transcripción -->
@@ -237,14 +259,35 @@
   </div>
 
   <script>
-    // Iniciar plugin para mostrar números sobre las gráficas
     Chart.register(ChartDataLabels);
 
     let totalAudioSeconds = 0;
     let chart1 = null;
     let chart2 = null;
 
-    // Convertidor a formato MM:SS
+    // Llenar Fecha Automáticamente al Cargar la Página
+    document.addEventListener("DOMContentLoaded", () => {
+      let d = new Date();
+      d.setDate(d.getDate() - 1); // Ayer
+      if (d.getDay() === 0) {     // Si ayer fue domingo (0), retrocede un día más al sábado
+        d.setDate(d.getDate() - 1);
+      }
+      document.getElementById('fechaLlamada').value = d.toISOString().split('T')[0];
+    });
+
+    // Formateador Inteligente de Tiempo (Segundos o Minutos)
+    function formatSmartTime(seconds) {
+      if(isNaN(seconds) || seconds < 0) seconds = 0;
+      if (seconds < 60) {
+        return Math.floor(seconds) + " seg";
+      } else {
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')} min`;
+      }
+    }
+
+    // Formateador exacto MM:SS para las tablas
     function formatMMSS(seconds) {
       if(isNaN(seconds) || seconds < 0) seconds = 0;
       const m = Math.floor(seconds / 60);
@@ -256,7 +299,6 @@
       const file = document.getElementById('audioInput').files[0];
       if (file) {
         document.getElementById('fileNameText').innerText = "Archivo listo: " + file.name;
-        // Obtenemos duración del audio del archivo local
         const tempPlayer = new Audio(URL.createObjectURL(file));
         tempPlayer.onloadedmetadata = () => { totalAudioSeconds = tempPlayer.duration; };
       }
@@ -264,15 +306,12 @@
 
     async function procesarAudioClientSide() {
       const codigoID = document.getElementById('codigoID').value.trim();
+      const fechaLlam = document.getElementById('fechaLlamada').value;
       const fileInput = document.getElementById('audioInput');
 
-      if (!codigoID) return alert('Por favor ingresa la SN o Código ID de la llamada.');
-      
-      // Validación estricta: Solo números
-      if (!/^\d+$/.test(codigoID)) {
-        return alert('Error: El campo SN / Código ID es obligatorio y debe contener ÚNICAMENTE números (sin espacios, ni letras).');
-      }
-
+      if (!fechaLlam) return alert('Por favor ingresa la Fecha de la Llamada.');
+      if (!codigoID) return alert('Por favor ingresa la SN o Código ID.');
+      if (!/^\d+$/.test(codigoID)) return alert('Error: El campo SN debe contener ÚNICAMENTE números.');
       if (!fileInput.files[0]) return alert('Por favor selecciona un archivo de audio.');
 
       const file = fileInput.files[0];
@@ -282,17 +321,13 @@
 
       document.getElementById('placeholderMsg').classList.remove('hidden');
       document.getElementById('analysisContainer').classList.add('hidden');
-      document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--primary-blue);">⏳ Conectando y analizando audio con IA (Gemini)...</h3>`;
+      document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--primary-blue);">⏳ Procesando y escuchando audio con IA (Gemini)...</h3>`;
 
       try {
-        // Pedir la API KEY interna de forma transparente al usuario
         const keyRes = await fetch('/api/key');
-        const keyData = await keyRes.json();
-        const apiKey = keyData.key;
+        const apiKey = (await keyRes.json()).key;
+        if (!apiKey) throw new Error("API Key no configurada en Vercel.");
 
-        if (!apiKey) throw new Error("API Key no configurada en el servidor de Vercel.");
-
-        // Subida directa a Gemini API
         const uploadUrl = `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`;
         const mimeType = file.type || 'audio/wav';
         const uploadHeaders = {
@@ -303,27 +338,27 @@
         };
 
         const uploadRes = await fetch(uploadUrl, { method: 'POST', headers: uploadHeaders, body: file });
-        if (!uploadRes.ok) throw new Error("Error subiendo el archivo a los servidores de IA.");
-
+        if (!uploadRes.ok) throw new Error("Error subiendo archivo.");
         const fileUri = (await uploadRes.json()).file.uri;
 
-        // Generar Contenido
         const generateUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
         
-        const promptTexto = `Analiza detalladamente este audio y extrae la información en un formato JSON estricto:
+        const promptTexto = `Analiza este audio y extrae en formato JSON estricto:
         {
           "participantes": {
             "asesor": "Nombre del asesor",
-            "cliente": "Nombre del cliente"
+            "cliente": "Nombre del cliente",
+            "numero": "Número de teléfono en consulta si se menciona (si no, vacío)",
+            "dni": "DNI del cliente si se menciona (si no, vacío)",
+            "operacion": "Tipo de operación identificada (Ej: Renovación, Migración, etc.)"
           },
           "lineas": [
-            "Línea 903007688: Descripción del trámite...",
-            "Línea 934759686: Descripción del trámite..."
+            "Línea 903007688: Descripción del trámite..."
           ],
           "silencios": [
-            {"iniciaSeg": 119, "terminaSeg": 124, "responsable": "Cliente", "causa": "Búsqueda de número... (Si la responsabilidad no aplica, pon 'No se identifica')"}
+            {"iniciaSeg": 119, "terminaSeg": 124, "responsable": "Cliente", "causa": "Búsqueda..."}
           ],
-          "resumenLlamada": "Un solo párrafo corto resumiendo la llamada de forma narrativa. Debes incluir obligatoriamente dentro de este párrafo los tiempos de silencio detectados usando paréntesis (Ejemplo: ...acordaron la renovación (desde 01:59 a 02:04) y luego el cliente...).",
+          "resumenLlamada": "Párrafo resumiendo la llamada y colocando obligatoriamente los intervalos de silencio detectados entre paréntesis (Ej: ...acordaron la renovación (desde 01:59 a 02:04)...).",
           "transcripcion": [
             {"tiempo": "00:00 - 00:01", "hablante": "Asesora", "dialogo": "Aló..."}
           ]
@@ -338,13 +373,11 @@
         if (!genRes.ok) throw new Error("Error analizando el audio con IA.");
 
         const jsonText = (await genRes.json()).candidates[0].content.parts[0].text;
-        const data = JSON.parse(jsonText);
-        
-        construirDashboardInicial(data);
+        construirDashboardInicial(JSON.parse(jsonText));
 
       } catch (error) {
         alert(error.message);
-        document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--accent-red);">❌ Ocurrió un error. Verifica la conexión o el archivo.</h3>`;
+        document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--accent-red);">❌ Error. Verifica el archivo o la red.</h3>`;
       }
     }
 
@@ -354,45 +387,27 @@
       document.getElementById('btnExcel').classList.remove('hidden');
       document.getElementById('btnLimpiar').classList.remove('hidden');
 
-      // Nombres
-      document.getElementById('nombreAsesor').value = data.participantes?.asesor || "No detectado";
-      document.getElementById('nombreCliente').value = data.participantes?.cliente || "No detectado";
+      // Campos de Sidebar
+      document.getElementById('nombreAsesor').value = data.participantes?.asesor || "";
+      document.getElementById('nombreCliente').value = data.participantes?.cliente || "";
+      document.getElementById('numeroConsulta').value = data.participantes?.numero || "";
+      document.getElementById('dniCliente').value = data.participantes?.dni || "";
+      document.getElementById('tipoOperacion').value = data.participantes?.operacion || "";
 
-      // Líneas como Lista
+      // Lista de Líneas
       let htmlLineas = `<ul class="lista-lineas">`;
-      (data.lineas || []).forEach(linea => { htmlLineas += `<li>${linea}</li>`; });
+      (data.lineas || []).forEach(l => { htmlLineas += `<li>${l}</li>`; });
       htmlLineas += `</ul>`;
       document.getElementById('textLineas').innerHTML = htmlLineas;
 
-      // Resumen unificado
+      // Resumen
       document.getElementById('textResumen').innerText = data.resumenLlamada || "";
 
-      // Tabla interactiva Editable
-      let htmlSilencios = "";
-      (data.silencios || []).forEach((s, idx) => {
-        let dur = s.terminaSeg - s.iniciaSeg;
-        if(dur < 0) dur = 0;
-        let resp = s.responsable || 'No se identifica';
-        if(resp.toLowerCase().includes('aplica')) resp = 'No se identifica';
-
-        htmlSilencios += `<tr>
-          <td>${idx + 1}</td>
-          <td><span class="clickable-time" onclick="saltarA(${s.iniciaSeg})">${formatMMSS(s.iniciaSeg)}</span></td>
-          <td>${formatMMSS(s.terminaSeg)}</td>
-          <td><input type="number" step="0.5" min="0" class="edit-input" value="${dur}" onchange="recalcularMetricas()"></td>
-          <td>
-            <select class="edit-select" onchange="recalcularMetricas()">
-              <option value="Asesor" ${resp.toLowerCase().includes('asesor') ? 'selected' : ''}>Asesor</option>
-              <option value="Cliente" ${resp.toLowerCase().includes('cliente') ? 'selected' : ''}>Cliente</option>
-              <option value="Sistema/Red" ${resp.toLowerCase().includes('sistema') ? 'selected' : ''}>Sistema/Red</option>
-              <option value="No se identifica" ${resp === 'No se identifica' ? 'selected' : ''}>No se identifica</option>
-            </select>
-          </td>
-          <td>${s.causa}</td>
-          <td><button class="btn-delete" onclick="eliminarFila(this)">❌</button></td>
-        </tr>`;
+      // Tabla Silencios
+      document.getElementById('tbodySilencios').innerHTML = "";
+      (data.silencios || []).forEach(s => {
+        agregarFilaTablaSilencio(formatMMSS(s.iniciaSeg), formatMMSS(s.terminaSeg), (s.terminaSeg - s.iniciaSeg), s.responsable, s.causa);
       });
-      document.getElementById('tbodySilencios').innerHTML = htmlSilencios;
 
       // Transcripción
       let htmlTrans = "";
@@ -401,21 +416,56 @@
       });
       document.getElementById('tbodyTranscripcion').innerHTML = htmlTrans;
 
-      // Iniciar Gráficos vacíos e invocar cálculo
       initCharts();
       recalcularMetricas();
     }
 
+    function agregarFilaSilencio() {
+      agregarFilaTablaSilencio("00:00", "00:00", 0, "No se identifica", "Escriba causa manual...");
+      recalcularMetricas();
+    }
+
+    function agregarFilaTablaSilencio(inicia, termina, duracion, resp, causa) {
+      if(duracion < 0) duracion = 0;
+      resp = resp || 'No se identifica';
+      if(resp.toLowerCase().includes('aplica')) resp = 'No se identifica';
+
+      const tbody = document.getElementById('tbodySilencios');
+      const idx = tbody.querySelectorAll('tr').length + 1;
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="td-idx">${idx}</td>
+        <td><input type="text" class="edit-input" value="${inicia}" style="width:55px;"></td>
+        <td><input type="text" class="edit-input" value="${termina}" style="width:55px;"></td>
+        <td><input type="number" step="0.5" min="0" class="edit-input" value="${duracion}" onchange="recalcularMetricas()"></td>
+        <td>
+          <select class="edit-select" onchange="recalcularMetricas()">
+            <option value="Asesor" ${resp.toLowerCase().includes('asesor') ? 'selected' : ''}>Asesor</option>
+            <option value="Cliente" ${resp.toLowerCase().includes('cliente') ? 'selected' : ''}>Cliente</option>
+            <option value="Sistema/Red" ${resp.toLowerCase().includes('sistema') ? 'selected' : ''}>Sistema/Red</option>
+            <option value="No se identifica" ${resp === 'No se identifica' ? 'selected' : ''}>No se identifica</option>
+          </select>
+        </td>
+        <td><input type="text" class="form-control" value="${causa}" style="background:transparent; border:none; padding:4px;"></td>
+        <td><button class="btn-delete" onclick="eliminarFila(this)">❌</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+
     function eliminarFila(btn) {
-      if(confirm("¿Seguro que deseas eliminar este registro de silencio?")) {
+      if(confirm("¿Seguro que deseas eliminar esta fila?")) {
         btn.closest('tr').remove();
+        // re-enumerar
+        document.querySelectorAll('#tbodySilencios tr').forEach((row, i) => {
+          row.querySelector('.td-idx').innerText = i + 1;
+        });
         recalcularMetricas();
       }
     }
 
-    // Calcula dinámicamente según la tabla
     function recalcularMetricas() {
-      if(totalAudioSeconds === 0) totalAudioSeconds = 1000; // Backup por si falla lectura de meta-datos
+      if(totalAudioSeconds === 0) totalAudioSeconds = 1000;
       
       let totalSilencioSeg = 0;
       let asesoSil = 0, clienteSil = 0, sisSil = 0;
@@ -423,7 +473,8 @@
 
       const rows = document.querySelectorAll('#tbodySilencios tr');
       rows.forEach(row => {
-        const dur = parseFloat(row.querySelector('.edit-input').value) || 0;
+        const inputs = row.querySelectorAll('input');
+        const dur = parseFloat(inputs[2].value) || 0;
         const resp = row.querySelector('.edit-select').value;
         totalSilencioSeg += dur;
         pausas++;
@@ -436,18 +487,17 @@
       const porcSil = ((totalSilencioSeg / totalAudioSeconds) * 100).toFixed(1);
       const porcHab = ((habladoSeg / totalAudioSeconds) * 100).toFixed(1);
 
-      document.getElementById('mTiempoTotal').innerText = formatMMSS(totalAudioSeconds) + " min";
-      document.getElementById('mTiempoHablado').innerText = formatMMSS(habladoSeg) + " min";
+      document.getElementById('mTiempoTotal').innerText = formatSmartTime(totalAudioSeconds);
+      document.getElementById('mTiempoHablado').innerText = formatSmartTime(habladoSeg);
       document.getElementById('mPorcHablado').innerText = `(${porcHab}%)`;
-      document.getElementById('mTiempoSilencio').innerText = formatMMSS(totalSilencioSeg) + " min";
+      document.getElementById('mTiempoSilencio').innerText = formatSmartTime(totalSilencioSeg);
       document.getElementById('mPorcSilencio').innerText = `(${porcSil}%)`;
       document.getElementById('mCantPausas').innerText = pausas;
 
-      const mitadHabla = habladoSeg / 2; // Split asumido para visualización
+      const mitadHabla = habladoSeg / 2;
 
       chart1.data.datasets[0].data = [Math.round(mitadHabla), Math.round(mitadHabla), Math.round(totalSilencioSeg)];
       chart1.update();
-
       chart2.data.datasets[0].data = [Math.round(asesoSil), Math.round(clienteSil), Math.round(sisSil)];
       chart2.update();
     }
@@ -481,15 +531,12 @@
       });
     }
 
-    function saltarA(segundos) {
-      const player = document.getElementById('audioPlayer');
-      player.currentTime = segundos;
-      player.play();
-    }
-
     function limpiarPantalla() {
       document.getElementById('audioInput').value = "";
       document.getElementById('codigoID').value = "";
+      document.getElementById('numeroConsulta').value = "";
+      document.getElementById('dniCliente').value = "";
+      document.getElementById('tipoOperacion').value = "";
       document.getElementById('nombreAsesor').value = "";
       document.getElementById('nombreCliente').value = "";
       document.getElementById('fileNameText').innerText = "Haz clic para seleccionar tu audio (.wav, .mp3)";
@@ -498,38 +545,82 @@
       document.getElementById('btnExcel').classList.add('hidden');
       document.getElementById('btnLimpiar').classList.add('hidden');
       document.getElementById('placeholderMsg').classList.remove('hidden');
-      document.getElementById('placeholderMsg').innerHTML = `<h3 style="font-weight: 500;">Carga un archivo e ingresa el SN para iniciar el análisis interactivo.</h3>`;
+      
+      // Restaurar Fecha Automática
+      let d = new Date(); d.setDate(d.getDate() - 1); if (d.getDay() === 0) d.setDate(d.getDate() - 1);
+      document.getElementById('fechaLlamada').value = d.toISOString().split('T')[0];
     }
 
-    function descargarExcel() {
-      const codigoID = document.getElementById('codigoID').value;
-      let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+    // GESTION DE BASE DE DATOS Y EXPORTACION
+    function guardarYExportarReporte() {
+      const sn = document.getElementById('codigoID').value;
+      const fechaProceso = new Date().toISOString().split('T')[0];
       
-      csvContent += `SN / CODIGO ID,${codigoID}\n`;
-      csvContent += `TIEMPO TOTAL,${document.getElementById('mTiempoTotal').innerText}\n`;
-      csvContent += `TIEMPO SILENCIO,${document.getElementById('mTiempoSilencio').innerText}\n\n`;
+      // Objeto a guardar en BD Acumulativa
+      const auditoria = {
+        sn: sn,
+        fechaLlamada: document.getElementById('fechaLlamada').value,
+        fechaProceso: fechaProceso,
+        asesor: document.getElementById('nombreAsesor').value,
+        cliente: document.getElementById('nombreCliente').value,
+        dni: document.getElementById('dniCliente').value,
+        numero: document.getElementById('numeroConsulta').value,
+        operacion: document.getElementById('tipoOperacion').value,
+        tiempoTotal: document.getElementById('mTiempoTotal').innerText,
+        tiempoHablado: document.getElementById('mTiempoHablado').innerText,
+        tiempoSilencio: document.getElementById('mTiempoSilencio').innerText,
+        pausas: document.getElementById('mCantPausas').innerText
+      };
 
-      csvContent += "3. Registro Detallado de Silencios Mayores al Umbral\n";
-      csvContent += "Inicia,Termina,Duración (seg),Responsable,Causa / Motivo\n";
-      
-      const rows = document.querySelectorAll('#tbodySilencios tr');
-      rows.forEach(row => {
-        const cols = row.querySelectorAll('td');
-        const inicia = cols[1].innerText;
-        const termina = cols[2].innerText;
-        const duracion = row.querySelector('.edit-input').value;
+      // Guardar Localmente
+      let db = JSON.parse(localStorage.getItem('gea_qa_history') || '[]');
+      const index = db.findIndex(r => r.sn === sn);
+      if (index >= 0) db[index] = auditoria; else db.push(auditoria);
+      localStorage.setItem('gea_qa_history', JSON.stringify(db));
+
+      // Descargar Reporte Individual
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+      csvContent += `SN / CODIGO ID,${sn}\n`;
+      csvContent += `FECHA LLAMADA,${auditoria.fechaLlamada}\n`;
+      csvContent += `TIPO OPERACION,${auditoria.operacion}\n`;
+      csvContent += `TIEMPO TOTAL,${auditoria.tiempoTotal}\n`;
+      csvContent += `TIEMPO SILENCIO,${auditoria.tiempoSilencio}\n\n`;
+
+      csvContent += "Registro de Silencios\n";
+      csvContent += "Inicia,Termina,Duración (seg),Responsable,Causa\n";
+      document.querySelectorAll('#tbodySilencios tr').forEach(row => {
+        const inputs = row.querySelectorAll('input');
+        const inicia = inputs[0].value;
+        const termina = inputs[1].value;
+        const duracion = inputs[2].value;
         const resp = row.querySelector('.edit-select').value;
-        const causa = cols[5].innerText;
+        const causa = inputs[3].value;
         csvContent += `"${inicia}","${termina}","${duracion}","${resp}","${causa}"\n`;
       });
 
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
       link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `Reporte_QA_${codigoID}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      link.setAttribute("download", `Auditoria_QA_${sn}.csv`);
+      document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    function descargarBDHistorica() {
+      let db = JSON.parse(localStorage.getItem('gea_qa_history') || '[]');
+      if(db.length === 0) return alert("La base de datos histórica está vacía.");
+
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+      csvContent += "SN,Fecha Llamada,Fecha Proceso,Asesor,Cliente,DNI,Numero,Operacion,T.Total,T.Hablado,T.Silencio,Pausas\n";
+      
+      db.forEach(r => {
+        csvContent += `"${r.sn}","${r.fechaLlamada}","${r.fechaProceso}","${r.asesor}","${r.cliente}","${r.dni}","${r.numero}","${r.operacion}","${r.tiempoTotal}","${r.tiempoHablado}","${r.tiempoSilencio}","${r.pausas}"\n`;
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `BD_Historica_Auditorias.csv`);
+      document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
   </script>
 </body>
