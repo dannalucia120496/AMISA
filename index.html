@@ -316,41 +316,80 @@
 
       document.getElementById('placeholderMsg').classList.remove('hidden');
       document.getElementById('analysisContainer').classList.add('hidden');
-      document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--primary-blue);">⏳ Analizando audio... (Gemini)</h3>`;
+      document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--primary-blue);">⏳ Analizando audio... esto puede tomar unos segundos.</h3>`;
 
       try {
         const keyRes = await fetch('/api/key');
         const apiKey = (await keyRes.json()).key;
         if (!apiKey) throw new Error("API Key no configurada.");
 
+        // 1. Subir Archivo
         const uploadRes = await fetch(`https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`, {
           method: 'POST',
           headers: { 'X-Goog-Upload-Command': 'start, upload, finalize', 'X-Goog-Upload-Header-Content-Length': file.size.toString(), 'X-Goog-Upload-Header-Content-Type': file.type || 'audio/wav', 'Content-Type': file.type || 'audio/wav' },
           body: file
         });
-        const fileUri = (await uploadRes.json()).file.uri;
-
-        const promptTexto = `Analiza este audio y extrae en formato JSON estricto:
-        {
-          "participantes": { "asesor": "Nombre", "cliente": "Nombre", "numero": "Nro consulta", "dni": "DNI", "operacion": "Tipo" },
-          "lineas": [ "Línea 903...: Descripción" ],
-          "silencios": [ {"iniciaSeg": 119, "terminaSeg": 125, "responsable": "Cliente", "causa": "Motivo..."} ],
-          "resumenLlamada": "Resumen narrativo con intervalos de silencio incluidos en paréntesis.",
-          "transcripcion": [ {"tiempo": "00:00 - 00:01", "hablante": "Asesora", "dialogo": "Aló..."} ]
+        
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) {
+           throw new Error(`Fallo al subir archivo: ${uploadData.error?.message || 'Error Desconocido'}`);
         }
-        IMPORTANTE: En la sección 'silencios', debes registrar ÚNICAMENTE las pausas o silencios cuya duración sea MAYOR A 4 SEGUNDOS.`;
+        
+        const fileUri = uploadData.file.uri;
 
-        const genRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
+        const promptTexto = `Eres un auditor experto de Quality Assurance (QA) de Call Center. Analiza este audio con extrema precisión y extrae la información en formato JSON estricto.
+
+        REGLA CRÍTICA Y OBLIGATORIA PARA DETECTAR SILENCIOS:
+        DEBES calcular matemáticamente la diferencia de tiempo entre el fin de una intervención y el inicio de la siguiente. 
+        Por ejemplo: Si el cliente termina de hablar en el segundo 45 y el asesor le responde en el segundo 55, hubo un silencio de 10 segundos.
+        Si la pausa, tiempo de espera en línea (incluso con música) o el espacio vacío entre diálogos es MAYOR A 4 SEGUNDOS, regístralo obligatoriamente en el array "silencios". 
+        Los campos "iniciaSeg" y "terminaSeg" deben estar estrictamente en segundos totales (Ejemplo: 01:20 = 80 segundos).
+
+        ESTRUCTURA JSON REQUERIDA:
+        {
+          "participantes": { 
+            "asesor": "Nombre o 'No identificado'", 
+            "cliente": "Nombre o 'No identificado'", 
+            "numero": "Nro en consulta", 
+            "dni": "DNI del cliente", 
+            "operacion": "Tipo (Renovación, Migración, etc.)" 
+          },
+          "lineas": [ "Línea 903...: Descripción" ],
+          "silencios": [ 
+            {"iniciaSeg": 80, "terminaSeg": 95, "responsable": "Asesor", "causa": "Validación en sistema o búsqueda de datos"} 
+          ],
+          "resumenLlamada": "Resumen narrativo detallado con los intervalos de silencio incluidos en paréntesis.",
+          "transcripcion": [ 
+            {"tiempo": "00:00 - 00:05", "hablante": "Asesor", "dialogo": "Transcripción exacta..."} 
+          ]
+        }`;
+
+        // 2. DARLE UN RESPÍRO A LA IA: Pausa de 4 segundos para que Google procese audios pesados
+        await new Promise(resolve => setTimeout(resolve, 4000));
+
+        // 3. Solicitar Análisis
+        const genRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contents: [{ parts: [{ fileData: { mimeType: file.type||'audio/wav', fileUri: fileUri } }, { text: promptTexto }] }], generationConfig: { responseMimeType: "application/json" } })
         });
         
-        const jsonText = (await genRes.json()).candidates[0].content.parts[0].text;
+        const genData = await genRes.json();
+
+        // 4. ESCUDO ANTI-ERRORES: Validar la respuesta antes de extraer
+        if (!genRes.ok || genData.error) {
+           throw new Error(`API Gemini: ${genData.error?.message || 'Servidor saturado'}`);
+        }
+
+        if (!genData.candidates || genData.candidates.length === 0) {
+           throw new Error("El audio fue bloqueado por filtros de seguridad o la IA no pudo transcribirlo.");
+        }
+
+        const jsonText = genData.candidates[0].content.parts[0].text;
         construirDashboardInicial(JSON.parse(jsonText));
 
       } catch (error) {
         alert(error.message);
-        document.getElementById('placeholderMsg').innerHTML = `<h3 style="color:red;">❌ Error. Verifica el archivo.</h3>`;
+        document.getElementById('placeholderMsg').innerHTML = `<h3 style="color:var(--accent-red);">❌ Error. ${error.message}</h3>`;
       }
     }
 
