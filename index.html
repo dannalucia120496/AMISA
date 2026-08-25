@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Analizador VAD & Transcripción de Llamadas - GEA QA TOOL</title>
+  <title>AMISA (Análisis de Métricas de audio, Inactividad y Silencio con Automatización)</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <style>
@@ -20,7 +20,7 @@
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border-color); }
     .brand { display: flex; align-items: center; gap: 12px; }
     .badge { background: linear-gradient(135deg, #2563eb, #0284c7); color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
-    header h1 { font-size: 20px; font-weight: 700; color: var(--text-main); }
+    header h1 { font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 2px; }
     .top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
     .btn { padding: 8px 16px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
@@ -78,7 +78,10 @@
   <header>
     <div class="brand">
       <span class="badge">GEA QA TOOL</span>
-      <h1>Analizador VAD & Transcripción</h1>
+      <div style="display: flex; flex-direction: column;">
+        <h1>AMISA</h1>
+        <span style="font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.3px;">(Análisis de Métricas de audio, Inactividad y Silencio con Automatización)</span>
+      </div>
     </div>
     <div class="top-actions">
       <button class="btn btn-success hidden" id="btnExcel" onclick="descargarCSV()">📊 Descargar Reporte CSV</button>
