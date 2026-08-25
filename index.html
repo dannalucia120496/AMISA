@@ -66,6 +66,10 @@
     .clickable-idx { color: var(--primary-blue); font-weight: 800; text-decoration: underline; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
     .clickable-idx:hover { background: #eff6ff; }
     audio { width: 100%; margin-top: 15px; border-radius: 8px; }
+    
+    .audio-controls-box { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; margin-top: 10px; }
+    .audio-btns { display: flex; gap: 6px; margin-bottom: 8px; justify-content: center; }
+    
     .hidden { display: none !important; }
   </style>
 </head>
@@ -118,7 +122,21 @@
           <p style="font-size: 11px; color: var(--text-muted);" id="fileNameText">Haz clic para seleccionar audio</p>
           <input type="file" id="audioInput" accept="audio/*" class="hidden" onchange="mostrarNombreArchivo()">
         </div>
+        
+        <!-- Reproductor -->
         <audio id="audioPlayer" controls class="hidden"></audio>
+        
+        <!-- Controles de Audio Personalizados (Retroceso, Avance, Salto) -->
+        <div id="customAudioControls" class="audio-controls-box hidden">
+          <div class="audio-btns">
+            <button class="btn btn-primary" style="padding: 6px 12px; font-size: 11px; flex: 1;" onclick="skipAudio(-10)">⏪ 10s</button>
+            <button class="btn btn-primary" style="padding: 6px 12px; font-size: 11px; flex: 1;" onclick="skipAudio(10)">10s ⏩</button>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="jumpTimeInput" class="form-control" placeholder="Min:Seg (Ej: 01:20)" style="flex: 1;">
+            <button class="btn btn-success" style="padding: 6px 14px; font-size: 11px;" onclick="jumpToTime()">Ir 🎯</button>
+          </div>
+        </div>
 
         <div class="form-group"><label>Asesor</label><input type="text" id="nombreAsesor" class="form-control" onchange="dispararSync()"></div>
         <div class="form-group"><label>Cliente</label><input type="text" id="nombreCliente" class="form-control" onchange="dispararSync()"></div>
@@ -144,7 +162,7 @@
           <div class="metrics-row">
             <div class="metric-card"><div class="metric-label">Tiempo Total</div><div class="metric-value val-blue" id="mTiempoTotal">00:00</div></div>
             <div class="metric-card"><div class="metric-label">Tiempo Hablado</div><div class="metric-value val-green" id="mTiempoHablado">00:00</div></div>
-            <div class="metric-card"><div class="metric-label">Silencios (>3s)</div><div class="metric-value val-red" id="mTiempoSilencio">00:00</div></div>
+            <div class="metric-card"><div class="metric-label">Silencios (>4s)</div><div class="metric-value val-red" id="mTiempoSilencio">00:00</div></div>
             <div class="metric-card"><div class="metric-label">Pausas Largas</div><div class="metric-value val-purple" id="mCantPausas">0</div></div>
           </div>
         </div>
@@ -159,7 +177,7 @@
 
         <div class="panel">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div class="panel-title" style="margin-bottom: 0;">⏱️ Registro Detallado de Silencios</div>
+            <div class="panel-title" style="margin-bottom: 0;">⏱️ Registro Detallado de Silencios (>4s)</div>
             <button class="btn btn-primary" style="font-size: 11px; padding: 5px 10px;" onclick="agregarFilaSilencio()">➕ Añadir Manual</button>
           </div>
           <p style="font-size: 11.5px; color: var(--accent-cyan); font-weight: bold; margin-bottom: 10px;">
@@ -224,6 +242,33 @@
       dispararSync();
     }
 
+    // Funciones de Control de Audio Nuevas
+    function skipAudio(seconds) {
+      const player = document.getElementById('audioPlayer');
+      if (player.readyState > 0) {
+        player.currentTime = Math.max(0, player.currentTime + seconds);
+      }
+    }
+
+    function jumpToTime() {
+      const val = document.getElementById('jumpTimeInput').value.trim();
+      const player = document.getElementById('audioPlayer');
+      if (!val || player.readyState === 0) return;
+      
+      let segs = 0;
+      if (val.includes(':')) {
+        const parts = val.split(':');
+        segs = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+      } else {
+        segs = parseInt(val);
+      }
+      
+      if (!isNaN(segs)) {
+        player.currentTime = segs;
+        player.play();
+      }
+    }
+
     function formatSmartTime(seconds) {
       if(isNaN(seconds) || seconds < 0) seconds = 0;
       if (seconds < 60) return Math.floor(seconds) + " seg";
@@ -261,6 +306,7 @@
       const player = document.getElementById('audioPlayer');
       player.src = URL.createObjectURL(file);
       player.classList.remove('hidden');
+      document.getElementById('customAudioControls').classList.remove('hidden');
 
       document.getElementById('placeholderMsg').classList.remove('hidden');
       document.getElementById('analysisContainer').classList.add('hidden');
@@ -282,10 +328,11 @@
         {
           "participantes": { "asesor": "Nombre", "cliente": "Nombre", "numero": "Nro consulta", "dni": "DNI", "operacion": "Tipo" },
           "lineas": [ "Línea 903...: Descripción" ],
-          "silencios": [ {"iniciaSeg": 119, "terminaSeg": 124, "responsable": "Cliente", "causa": "Motivo..."} ],
+          "silencios": [ {"iniciaSeg": 119, "terminaSeg": 125, "responsable": "Cliente", "causa": "Motivo..."} ],
           "resumenLlamada": "Resumen narrativo con intervalos de silencio incluidos en paréntesis.",
           "transcripcion": [ {"tiempo": "00:00 - 00:01", "hablante": "Asesora", "dialogo": "Aló..."} ]
-        }`;
+        }
+        IMPORTANTE: En la sección 'silencios', debes registrar ÚNICAMENTE las pausas o silencios cuya duración sea MAYOR A 4 SEGUNDOS.`;
 
         const genRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -319,7 +366,6 @@
       document.getElementById('textLineas').innerHTML = htmlLineas;
       document.getElementById('textResumen').innerText = data.resumenLlamada || "";
 
-      // Combinar transcripcion con silencios
       let transcripcionUnificada = data.transcripcion || [];
       (data.silencios || []).forEach(s => {
         transcripcionUnificada.push({
@@ -328,7 +374,6 @@
           dialogo: `Tiempo en silencio: ${s.causa}`
         });
       });
-      // Ordenar cronologicamente
       transcripcionUnificada.sort((a, b) => {
         let getSecs = (str) => { let m = str.match(/(\d+):(\d+)/); return m ? parseInt(m[1])*60 + parseInt(m[2]) : 0; };
         return getSecs(a.tiempo) - getSecs(b.tiempo);
@@ -363,7 +408,6 @@
       }
     }
 
-    // Calcula y actualiza la duración automáticamente si editan Inicia o Termina
     function actualizarDuracionFila(inputModificado) {
       const fila = inputModificado.closest('tr');
       const inputs = fila.querySelectorAll('input');
@@ -381,10 +425,7 @@
       let nuevaDuracion = finSeg - iniSeg;
       if (nuevaDuracion < 0) nuevaDuracion = 0;
 
-      // Actualiza visualmente la celda de Duración
       inputs[2].value = nuevaDuracion;
-
-      // Dispara la recalculación total para gráficos y Drive
       recalcularMetricas();
     }
 
@@ -453,16 +494,15 @@
       chart2.data.datasets[0].data = [Math.round(asesoSil), Math.round(clienteSil), Math.round(sisSil)];
       chart2.update();
 
-      dispararSync(); // Actualizar base de datos
+      dispararSync();
     }
 
     function dispararSync() {
       if(document.getElementById('analysisContainer').classList.contains('hidden')) return;
       clearTimeout(syncTimeout);
-      syncTimeout = setTimeout(() => { enviarAutomaticoAGoogleDrive(); }, 2000); // Sincroniza 2 segs despues de editar
+      syncTimeout = setTimeout(() => { enviarAutomaticoAGoogleDrive(); }, 2000); 
     }
 
-    // Funciones de Extracción para Celda Única
     function getDetalleSilencios() {
       let str = "";
       document.querySelectorAll('#tbodySilencios tr').forEach((row, i) => {
@@ -521,7 +561,7 @@
       };
       const opt = { plugins: { legend: { labels: { color: '#64748b', font:{size:11, weight:'bold'} } }, datalabels: { color: '#fff', font: { weight:'bold', size: 14 }, formatter: pctFormatter } }, responsive: true, maintainAspectRatio: false };
 
-      chart1 = new Chart(document.getElementById('chartTiempo'), { type: 'doughnut', data: { labels: ['Habla Asesor', 'Habla Cliente', 'Silencio (>3s)'], datasets: [{ data: [0,0,0], backgroundColor: ['#2563eb', '#16a34a', '#dc2626'] }] }, options: opt });
+      chart1 = new Chart(document.getElementById('chartTiempo'), { type: 'doughnut', data: { labels: ['Habla Asesor', 'Habla Cliente', 'Silencio (>4s)'], datasets: [{ data: [0,0,0], backgroundColor: ['#2563eb', '#16a34a', '#dc2626'] }] }, options: opt });
       
       let optBar = JSON.parse(JSON.stringify(opt));
       optBar.plugins.legend.display = false;
