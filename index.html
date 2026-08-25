@@ -367,8 +367,8 @@
         // 2. Pausa para procesar audios pesados
         await new Promise(resolve => setTimeout(resolve, 4000));
 
-        // 3. Solicitar Análisis usando el modelo de chat v1 para compatibilidad total con claves estándar
-        const genRes = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`, {
+        // 3. Solicitar Análisis utilizando la API más reciente y universal de Gemini
+        const genRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contents: [{ parts: [{ fileData: { mimeType: file.type||'audio/wav', fileUri: fileUri } }, { text: promptTexto }] }] })
         });
@@ -384,7 +384,6 @@
         }
 
         const rawText = genData.candidates[0].content.parts[0].text;
-        // Limpiar bloques de código markdown si los trae la IA
         const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
         construirDashboardInicial(JSON.parse(cleanJson));
 
