@@ -8,21 +8,13 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <style>
     :root {
-      --bg-body: #f8fafc;
-      --card-bg: #ffffff;
-      --border-color: #e2e8f0;
-      --primary-blue: #2563eb;
-      --primary-hover: #1d4ed8;
-      --accent-cyan: #0284c7;
-      --accent-green: #16a34a;
-      --accent-amber: #d97706;
-      --accent-red: #dc2626;
-      --accent-purple: #7c3aed;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
+      --bg-body: #f8fafc; --card-bg: #ffffff; --border-color: #e2e8f0;
+      --primary-blue: #2563eb; --primary-hover: #1d4ed8; --accent-cyan: #0284c7;
+      --accent-green: #16a34a; --accent-amber: #d97706; --accent-red: #dc2626;
+      --accent-purple: #7c3aed; --text-main: #0f172a; --text-muted: #64748b;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
     body { background-color: var(--bg-body); color: var(--text-main); padding: 20px; }
 
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border-color); }
@@ -36,51 +28,43 @@
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-success { background: var(--accent-green); color: white; }
     .btn-danger { background: #ef4444; color: white; }
-    .btn:hover { opacity: 0.95; }
 
     .dashboard-grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
     @media (max-width: 960px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
     .panel { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 18px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-    .panel-title { font-size: 12px; font-weight: 800; color: var(--accent-cyan); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .panel-title { font-size: 12px; font-weight: 800; color: var(--accent-cyan); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
 
-    .drop-zone { border: 2px dashed #cbd5e1; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: #f1f5f9; }
+    .drop-zone { border: 2px dashed #cbd5e1; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; background: #f1f5f9; }
     .drop-zone:hover { border-color: var(--primary-blue); background: #eff6ff; }
     .drop-icon { font-size: 28px; margin-bottom: 8px; color: var(--primary-blue); }
     
     .form-group { margin-top: 12px; }
     .form-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 700; text-transform: uppercase; }
-    .form-control { width: 100%; background: #ffffff; border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 10px; border-radius: 6px; font-size: 12px; }
-    .form-control:focus { outline: none; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+    .form-control { width: 100%; background: #ffffff; border: 1px solid var(--border-color); padding: 8px 10px; border-radius: 6px; font-size: 12px; }
     .form-control[readonly] { background: #f8fafc; color: var(--primary-blue); font-weight: 600; }
 
     .metrics-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
     .metric-card { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; text-align: center; }
     .metric-label { font-size: 11px; color: var(--text-muted); font-weight: 800; text-transform: uppercase; margin-bottom: 6px; }
     .metric-value { font-size: 22px; font-weight: 800; }
-    .metric-sub { font-size: 12px; margin-top: 4px; font-weight: 700; }
-
-    .val-blue { color: var(--primary-blue); }
-    .val-green { color: var(--accent-green); }
-    .val-red { color: var(--accent-red); }
-    .val-purple { color: var(--accent-purple); }
+    .val-blue { color: var(--primary-blue); } .val-green { color: var(--accent-green); }
+    .val-red { color: var(--accent-red); } .val-purple { color: var(--accent-purple); }
 
     .charts-container { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media (max-width: 700px) { .charts-container { grid-template-columns: 1fr; } }
     .chart-box { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
     table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-    th { background: #f1f5f9; color: var(--text-muted); text-align: left; padding: 8px; font-weight: 700; border-bottom: 2px solid var(--border-color); }
-    td { padding: 8px; border-bottom: 1px solid var(--border-color); color: var(--text-main); }
+    th { background: #f1f5f9; color: var(--text-muted); text-align: left; padding: 8px; border-bottom: 2px solid var(--border-color); }
+    td { padding: 8px; border-bottom: 1px solid var(--border-color); }
     
     .edit-input { width: 65px; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; font-weight: bold; font-size: 12px; }
     .edit-select { padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 11px; }
     .btn-delete { background: #ef4444; color: white; border: none; padding: 4px 6px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
-    ul.lista-lineas { padding-left: 20px; line-height: 1.6; color: var(--text-muted); margin-bottom: 0; }
-    ul.lista-lineas li { margin-bottom: 8px; }
-
-    .clickable-time { color: var(--primary-blue); text-decoration: underline; cursor: pointer; font-weight: 700; }
+    .clickable-idx { color: var(--primary-blue); font-weight: 800; text-decoration: underline; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+    .clickable-idx:hover { background: #eff6ff; }
     audio { width: 100%; margin-top: 15px; border-radius: 8px; }
     .hidden { display: none !important; }
   </style>
@@ -99,14 +83,12 @@
   </header>
 
   <div class="dashboard-grid">
-    
-    <!-- Sidebar -->
     <aside>
       <div class="panel">
         <div class="panel-title">📁 Carga de Datos y Audio</div>
 
         <div class="form-group" style="margin-bottom: 12px;">
-          <label for="selectCampana">Campaña (*)</label>
+          <label>Campaña (*)</label>
           <select id="selectCampana" class="form-control" onchange="guardarCampanaLocal()">
             <option value="">-- Selecciona Campaña --</option>
             <option value="OLAS FOCO MIGRA Y FC">OLAS FOCO MIGRA Y FC</option>
@@ -122,120 +104,72 @@
         </div>
 
         <div class="form-group" style="margin-bottom: 12px;">
-          <label for="fechaLlamada">Fecha de Llamada (*)</label>
+          <label>Fecha de Llamada (*)</label>
           <input type="date" id="fechaLlamada" class="form-control" required>
         </div>
 
         <div class="form-group" style="margin-bottom: 12px;">
-          <label for="codigoID">SN / Código ID de la Llamada (*)</label>
-          <input type="text" id="codigoID" class="form-control" placeholder="Ej: 1787595589118348" required>
-          <small style="color: var(--accent-red); font-size: 10px; font-weight: 600;">* Solo números</small>
+          <label>SN / Código ID (*)</label>
+          <input type="text" id="codigoID" class="form-control" placeholder="Ej: 1787595589" required>
         </div>
 
         <div class="drop-zone" onclick="document.getElementById('audioInput').click()">
           <div class="drop-icon">🎙️</div>
-          <p style="font-size: 11px; color: var(--text-muted);" id="fileNameText">Haz clic para seleccionar tu audio (.wav, .mp3)</p>
+          <p style="font-size: 11px; color: var(--text-muted);" id="fileNameText">Haz clic para seleccionar audio</p>
           <input type="file" id="audioInput" accept="audio/*" class="hidden" onchange="mostrarNombreArchivo()">
         </div>
         <audio id="audioPlayer" controls class="hidden"></audio>
 
-        <div class="form-group">
-          <label>Nombre Asesor</label>
-          <input type="text" id="nombreAsesor" class="form-control" placeholder="Auto-detectado o manual">
-        </div>
+        <div class="form-group"><label>Asesor</label><input type="text" id="nombreAsesor" class="form-control" onchange="dispararSync()"></div>
+        <div class="form-group"><label>Cliente</label><input type="text" id="nombreCliente" class="form-control" onchange="dispararSync()"></div>
+        <div class="form-group"><label>N° Consulta</label><input type="text" id="numeroConsulta" class="form-control" onchange="dispararSync()"></div>
+        <div class="form-group"><label>DNI Cliente</label><input type="text" id="dniCliente" class="form-control" onchange="dispararSync()"></div>
+        <div class="form-group"><label>Tipo Operación</label><input type="text" id="tipoOperacion" class="form-control" onchange="dispararSync()"></div>
 
-        <div class="form-group">
-          <label>Nombre Cliente</label>
-          <input type="text" id="nombreCliente" class="form-control" placeholder="Auto-detectado o manual">
-        </div>
-
-        <div class="form-group">
-          <label>Número en Consulta</label>
-          <input type="text" id="numeroConsulta" class="form-control" placeholder="Si se detecta...">
-        </div>
-        <div class="form-group">
-          <label>DNI del Cliente</label>
-          <input type="text" id="dniCliente" class="form-control" placeholder="Si se detecta...">
-        </div>
-        <div class="form-group">
-          <label>Tipo de Operación</label>
-          <input type="text" id="tipoOperacion" class="form-control" placeholder="Renovación, Migración...">
-        </div>
-
-        <button class="btn btn-primary" style="width: 100%; margin-top: 15px; justify-content: center; padding: 12px;" onclick="procesarAudioClientSide()">
+        <button class="btn btn-primary" style="width: 100%; margin-top: 15px; padding: 12px;" onclick="procesarAudioClientSide()">
           ⚡ Procesar Audio con IA
         </button>
       </div>
     </aside>
 
-    <!-- Main Results -->
     <main>
       <div id="placeholderMsg" class="panel" style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
-        <h3 style="font-weight: 500;">Completa los datos y carga un archivo para iniciar la auditoría.</h3>
+        <h3 style="font-weight: 500;">Completa los datos y carga un archivo para iniciar.</h3>
       </div>
 
       <div id="analysisContainer" class="hidden">
         
-        <!-- Métricas -->
         <div class="panel">
-          <div class="panel-title">📊 Resumen Ejecutivo Auditoría Quality Assurance</div>
+          <div class="panel-title">📊 Resumen Ejecutivo Auditoría</div>
           <div class="metrics-row">
-            <div class="metric-card">
-              <div class="metric-label">Tiempo Total</div>
-              <div class="metric-value val-blue" id="mTiempoTotal">00:00 min</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Tiempo Hablado</div>
-              <div class="metric-value val-green" id="mTiempoHablado">00:00 min</div>
-              <div class="metric-sub val-green" id="mPorcHablado">(0%)</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Silencios (>3s)</div>
-              <div class="metric-value val-red" id="mTiempoSilencio">00:00 min</div>
-              <div class="metric-sub val-red" id="mPorcSilencio">(0%)</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Pausas Largas</div>
-              <div class="metric-value val-purple" id="mCantPausas">0</div>
-            </div>
+            <div class="metric-card"><div class="metric-label">Tiempo Total</div><div class="metric-value val-blue" id="mTiempoTotal">00:00</div></div>
+            <div class="metric-card"><div class="metric-label">Tiempo Hablado</div><div class="metric-value val-green" id="mTiempoHablado">00:00</div></div>
+            <div class="metric-card"><div class="metric-label">Silencios (>3s)</div><div class="metric-value val-red" id="mTiempoSilencio">00:00</div></div>
+            <div class="metric-card"><div class="metric-label">Pausas Largas</div><div class="metric-value val-purple" id="mCantPausas">0</div></div>
           </div>
         </div>
 
-        <!-- Gráficos -->
         <div class="panel">
-          <div class="panel-title">📈 Análisis de Participación y Tiempos de Silencio</div>
+          <div class="panel-title">📈 Análisis de Participación (Porcentajes)</div>
           <div class="charts-container">
-            <div class="chart-box">
-              <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px; font-weight: 800;">DISTRIBUCIÓN DE TIEMPO (Seg)</p>
-              <canvas id="chartTiempo"></canvas>
-            </div>
-            <div class="chart-box">
-              <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px; font-weight: 800;">RESPONSABILIDAD DE SILENCIOS (Seg)</p>
-              <canvas id="chartResponsabilidad"></canvas>
-            </div>
+            <div class="chart-box"><canvas id="chartTiempo"></canvas></div>
+            <div class="chart-box"><canvas id="chartResponsabilidad"></canvas></div>
           </div>
         </div>
 
-        <!-- Tabla Editable -->
         <div class="panel">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div class="panel-title" style="margin-bottom: 0;">⏱️ Registro Detallado de Silencios (Editable)</div>
-            <button class="btn btn-primary" style="font-size: 11px; padding: 5px 10px;" onclick="agregarFilaSilencio()">➕ Añadir Silencio Manual</button>
+            <div class="panel-title" style="margin-bottom: 0;">⏱️ Registro Detallado de Silencios</div>
+            <button class="btn btn-primary" style="font-size: 11px; padding: 5px 10px;" onclick="agregarFilaSilencio()">➕ Añadir Manual</button>
           </div>
-          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
-            Modifica la duración, el responsable, o agrega filas si el monitor detecta pausas no identificadas. Todo se recalcula en vivo.
+          <p style="font-size: 11.5px; color: var(--accent-cyan); font-weight: bold; margin-bottom: 10px;">
+            👉 Haz clic en el N° de la fila para saltar el audio a ese momento exacto. Los cambios aquí actualizan Drive automáticamente.
           </p>
           <div style="overflow-x: auto;">
             <table>
               <thead>
                 <tr>
-                  <th>#</th>
-                  <th>Inicia (Min/Seg)</th>
-                  <th>Termina (Min/Seg)</th>
-                  <th>Duración (seg)</th>
-                  <th>Responsable</th>
-                  <th>Causa / Descripción (Editable)</th>
-                  <th>Acción</th>
+                  <th>N°</th><th>Inicia</th><th>Termina</th><th>Duración (s)</th><th>Responsable</th><th>Causa / Descripción</th><th>Acción</th>
                 </tr>
               </thead>
               <tbody id="tbodySilencios"></tbody>
@@ -243,25 +177,19 @@
           </div>
         </div>
 
-        <!-- Identificación y Resumen -->
         <div class="panel">
-          <div class="panel-title">📱 Identificación de Líneas y Resumen de la Llamada</div>
+          <div class="panel-title">📱 Identificación de Líneas y Resumen</div>
           <div id="textLineas"></div>
           <hr style="border-color: var(--border-color); margin: 16px 0;">
-          <p style="font-size: 13.5px; color: var(--text-main); line-height: 1.6;" id="textResumen"></p>
+          <p style="font-size: 13.5px; line-height: 1.6;" id="textResumen"></p>
         </div>
 
-        <!-- Transcripción -->
         <div class="panel">
-          <div class="panel-title">💬 Transcripción Completa de la Llamada</div>
+          <div class="panel-title">💬 Transcripción y Silencios de la Llamada</div>
           <div style="overflow-x: auto; max-height: 350px; overflow-y: auto;">
             <table>
               <thead>
-                <tr>
-                  <th>Tiempo</th>
-                  <th>Hablante</th>
-                  <th>Diálogo / Transcripción</th>
-                </tr>
+                <tr><th>Tiempo</th><th>Hablante</th><th>Diálogo / Transcripción</th></tr>
               </thead>
               <tbody id="tbodyTranscripcion"></tbody>
             </table>
@@ -280,48 +208,39 @@
     let totalAudioSeconds = 0;
     let chart1 = null;
     let chart2 = null;
+    let syncTimeout = null;
 
     document.addEventListener("DOMContentLoaded", () => {
-      // Fecha predeterminada (ayer, saltando domingo)
-      let d = new Date();
-      d.setDate(d.getDate() - 1);
+      let d = new Date(); d.setDate(d.getDate() - 1);
       if (d.getDay() === 0) d.setDate(d.getDate() - 1);
       document.getElementById('fechaLlamada').value = d.toISOString().split('T')[0];
 
-      // Cargar Campaña guardada en el navegador
       const campanaGuardada = localStorage.getItem("gea_qa_campana");
-      if (campanaGuardada) {
-        document.getElementById('selectCampana').value = campanaGuardada;
-      }
+      if (campanaGuardada) document.getElementById('selectCampana').value = campanaGuardada;
     });
 
     function guardarCampanaLocal() {
-      const campanaVal = document.getElementById('selectCampana').value;
-      localStorage.setItem("gea_qa_campana", campanaVal);
+      localStorage.setItem("gea_qa_campana", document.getElementById('selectCampana').value);
+      dispararSync();
     }
 
     function formatSmartTime(seconds) {
       if(isNaN(seconds) || seconds < 0) seconds = 0;
-      if (seconds < 60) {
-        return Math.floor(seconds) + " seg";
-      } else {
-        const m = Math.floor(seconds / 60);
-        const s = Math.floor(seconds % 60);
-        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')} min`;
-      }
+      if (seconds < 60) return Math.floor(seconds) + " seg";
+      const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60);
+      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')} min`;
     }
 
     function formatMMSS(seconds) {
       if(isNaN(seconds) || seconds < 0) seconds = 0;
-      const m = Math.floor(seconds / 60);
-      const s = Math.floor(seconds % 60);
+      const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60);
       return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     }
 
     function mostrarNombreArchivo() {
       const file = document.getElementById('audioInput').files[0];
       if (file) {
-        document.getElementById('fileNameText').innerText = "Archivo listo: " + file.name;
+        document.getElementById('fileNameText').innerText = "Archivo: " + file.name;
         const tempPlayer = new Audio(URL.createObjectURL(file));
         tempPlayer.onloadedmetadata = () => { totalAudioSeconds = tempPlayer.duration; };
       }
@@ -334,10 +253,9 @@
       const fileInput = document.getElementById('audioInput');
 
       if (!campana) return alert('Por favor selecciona una Campaña.');
-      if (!fechaLlam) return alert('Por favor ingresa la Fecha de la Llamada.');
-      if (!codigoID) return alert('Por favor ingresa la SN o Código ID.');
-      if (!/^\d+$/.test(codigoID)) return alert('Error: El campo SN debe contener ÚNICAMENTE números.');
-      if (!fileInput.files[0]) return alert('Por favor selecciona un archivo de audio.');
+      if (!fechaLlam) return alert('Ingresa la Fecha de Llamada.');
+      if (!codigoID || !/^\d+$/.test(codigoID)) return alert('El SN es obligatorio y solo admite números.');
+      if (!fileInput.files[0]) return alert('Selecciona el audio.');
 
       const file = fileInput.files[0];
       const player = document.getElementById('audioPlayer');
@@ -346,68 +264,40 @@
 
       document.getElementById('placeholderMsg').classList.remove('hidden');
       document.getElementById('analysisContainer').classList.add('hidden');
-      document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--primary-blue);">⏳ Procesando y escuchando audio con IA (Gemini)...</h3>`;
+      document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--primary-blue);">⏳ Analizando audio... (Gemini)</h3>`;
 
       try {
         const keyRes = await fetch('/api/key');
         const apiKey = (await keyRes.json()).key;
-        if (!apiKey) throw new Error("API Key no configurada en Vercel.");
+        if (!apiKey) throw new Error("API Key no configurada.");
 
-        const uploadUrl = `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`;
-        const mimeType = file.type || 'audio/wav';
-        const uploadHeaders = {
-          'X-Goog-Upload-Command': 'start, upload, finalize',
-          'X-Goog-Upload-Header-Content-Length': file.size.toString(),
-          'X-Goog-Upload-Header-Content-Type': mimeType,
-          'Content-Type': mimeType
-        };
-
-        const uploadRes = await fetch(uploadUrl, { method: 'POST', headers: uploadHeaders, body: file });
-        if (!uploadRes.ok) throw new Error("Error subiendo archivo.");
+        const uploadRes = await fetch(`https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'X-Goog-Upload-Command': 'start, upload, finalize', 'X-Goog-Upload-Header-Content-Length': file.size.toString(), 'X-Goog-Upload-Header-Content-Type': file.type || 'audio/wav', 'Content-Type': file.type || 'audio/wav' },
+          body: file
+        });
         const fileUri = (await uploadRes.json()).file.uri;
 
-        const generateUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
-        
         const promptTexto = `Analiza este audio y extrae en formato JSON estricto:
         {
-          "participantes": {
-            "asesor": "Nombre del asesor",
-            "cliente": "Nombre del cliente",
-            "numero": "Número de teléfono en consulta si se menciona (si no, vacío)",
-            "dni": "DNI del cliente si se menciona (si no, vacío)",
-            "operacion": "Tipo de operación identificada (Ej: Renovación, Migración, etc.)"
-          },
-          "lineas": [
-            "Línea 903007688: Descripción del trámite..."
-          ],
-          "silencios": [
-            {"iniciaSeg": 119, "terminaSeg": 124, "responsable": "Cliente", "causa": "Búsqueda..."}
-          ],
-          "resumenLlamada": "Párrafo resumiendo la llamada y colocando obligatoriamente los intervalos de silencio detectados entre paréntesis (Ej: ...acordaron la renovación (desde 01:59 a 02:04)...).",
-          "transcripcion": [
-            {"tiempo": "00:00 - 00:01", "hablante": "Asesora", "dialogo": "Aló..."}
-          ]
+          "participantes": { "asesor": "Nombre", "cliente": "Nombre", "numero": "Nro consulta", "dni": "DNI", "operacion": "Tipo" },
+          "lineas": [ "Línea 903...: Descripción" ],
+          "silencios": [ {"iniciaSeg": 119, "terminaSeg": 124, "responsable": "Cliente", "causa": "Motivo..."} ],
+          "resumenLlamada": "Resumen narrativo con intervalos de silencio incluidos en paréntesis.",
+          "transcripcion": [ {"tiempo": "00:00 - 00:01", "hablante": "Asesora", "dialogo": "Aló..."} ]
         }`;
 
-        const bodyData = {
-          contents: [{ parts: [{ fileData: { mimeType: mimeType, fileUri: fileUri } }, { text: promptTexto }] }],
-          generationConfig: { responseMimeType: "application/json" }
-        };
-
-        const genRes = await fetch(generateUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bodyData) });
-        if (!genRes.ok) throw new Error("Error analizando el audio con IA.");
-
-        const jsonText = (await genRes.json()).candidates[0].content.parts[0].text;
-        const dataParsed = JSON.parse(jsonText);
+        const genRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ fileData: { mimeType: file.type||'audio/wav', fileUri: fileUri } }, { text: promptTexto }] }], generationConfig: { responseMimeType: "application/json" } })
+        });
         
-        construirDashboardInicial(dataParsed);
-
-        // --- GUARDADO AUTOMÁTICO EN GOOGLE DRIVE ---
-        enviarAutomaticoAGoogleDrive();
+        const jsonText = (await genRes.json()).candidates[0].content.parts[0].text;
+        construirDashboardInicial(JSON.parse(jsonText));
 
       } catch (error) {
         alert(error.message);
-        document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--accent-red);">❌ Error. Verifica el archivo o la red.</h3>`;
+        document.getElementById('placeholderMsg').innerHTML = `<h3 style="color:red;">❌ Error. Verifica el archivo.</h3>`;
       }
     }
 
@@ -427,22 +317,150 @@
       (data.lineas || []).forEach(l => { htmlLineas += `<li>${l}</li>`; });
       htmlLineas += `</ul>`;
       document.getElementById('textLineas').innerHTML = htmlLineas;
-
       document.getElementById('textResumen').innerText = data.resumenLlamada || "";
+
+      // Combinar transcripcion con silencios
+      let transcripcionUnificada = data.transcripcion || [];
+      (data.silencios || []).forEach(s => {
+        transcripcionUnificada.push({
+          tiempo: `${formatMMSS(s.iniciaSeg)} - ${formatMMSS(s.terminaSeg)}`,
+          hablante: `SILENCIO (${s.responsable || 'No se identifica'})`,
+          dialogo: `Tiempo en silencio: ${s.causa}`
+        });
+      });
+      // Ordenar cronologicamente
+      transcripcionUnificada.sort((a, b) => {
+        let getSecs = (str) => { let m = str.match(/(\d+):(\d+)/); return m ? parseInt(m[1])*60 + parseInt(m[2]) : 0; };
+        return getSecs(a.tiempo) - getSecs(b.tiempo);
+      });
+
+      let htmlTrans = "";
+      transcripcionUnificada.forEach(t => {
+        let isSil = t.hablante.includes("SILENCIO");
+        let style = isSil ? "background-color: #fee2e2; color: #991b1b; font-weight:bold;" : "";
+        htmlTrans += `<tr style="${style}"><td style="white-space:nowrap;">${t.tiempo}</td><td><strong>${t.hablante}</strong></td><td>${t.dialogo}</td></tr>`;
+      });
+      document.getElementById('tbodyTranscripcion').innerHTML = htmlTrans;
 
       document.getElementById('tbodySilencios').innerHTML = "";
       (data.silencios || []).forEach(s => {
         agregarFilaTablaSilencio(formatMMSS(s.iniciaSeg), formatMMSS(s.terminaSeg), (s.terminaSeg - s.iniciaSeg), s.responsable, s.causa);
       });
 
-      let htmlTrans = "";
-      (data.transcripcion || []).forEach(t => {
-        htmlTrans += `<tr><td style="white-space:nowrap;">${t.tiempo}</td><td><strong>${t.hablante}</strong></td><td>${t.dialogo}</td></tr>`;
-      });
-      document.getElementById('tbodyTranscripcion').innerHTML = htmlTrans;
-
       initCharts();
       recalcularMetricas();
+    }
+
+    function saltarAlAudio(celda) {
+      const fila = celda.closest('tr');
+      const iniciaVal = fila.querySelectorAll('input')[0].value;
+      const partes = iniciaVal.split(':');
+      if(partes.length === 2) {
+        const segs = parseInt(partes[0]) * 60 + parseInt(partes[1]);
+        const player = document.getElementById('audioPlayer');
+        player.currentTime = segs;
+        player.play();
+      }
+    }
+
+    function agregarFilaSilencio() {
+      agregarFilaTablaSilencio("00:00", "00:00", 0, "No se identifica", "Manual...");
+      recalcularMetricas();
+    }
+
+    function agregarFilaTablaSilencio(inicia, termina, duracion, resp, causa) {
+      if(duracion < 0) duracion = 0;
+      resp = resp || 'No se identifica';
+      if(resp.toLowerCase().includes('aplica')) resp = 'No se identifica';
+
+      const tbody = document.getElementById('tbodySilencios');
+      const idx = tbody.querySelectorAll('tr').length + 1;
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><span class="clickable-idx" title="Escuchar desde ${inicia}" onclick="saltarAlAudio(this)">${idx}</span></td>
+        <td><input type="text" class="edit-input" value="${inicia}" style="width:55px;" onchange="recalcularMetricas()"></td>
+        <td><input type="text" class="edit-input" value="${termina}" style="width:55px;" onchange="recalcularMetricas()"></td>
+        <td><input type="number" step="0.5" min="0" class="edit-input" value="${duracion}" onchange="recalcularMetricas()"></td>
+        <td>
+          <select class="edit-select" onchange="recalcularMetricas()">
+            <option value="Asesor" ${resp.toLowerCase().includes('asesor') ? 'selected' : ''}>Asesor</option>
+            <option value="Cliente" ${resp.toLowerCase().includes('cliente') ? 'selected' : ''}>Cliente</option>
+            <option value="Sistema/Red" ${resp.toLowerCase().includes('sistema') ? 'selected' : ''}>Sistema/Red</option>
+            <option value="No se identifica" ${resp === 'No se identifica' ? 'selected' : ''}>No se identifica</option>
+          </select>
+        </td>
+        <td><input type="text" class="form-control" value="${causa}" style="background:transparent; border:none; padding:4px;" onchange="dispararSync()"></td>
+        <td><button class="btn-delete" onclick="eliminarFila(this)">❌</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    function eliminarFila(btn) {
+      if(confirm("¿Eliminar este registro?")) {
+        btn.closest('tr').remove();
+        document.querySelectorAll('#tbodySilencios tr').forEach((row, i) => {
+          row.querySelector('.clickable-idx').innerText = i + 1;
+        });
+        recalcularMetricas();
+      }
+    }
+
+    function recalcularMetricas() {
+      if(totalAudioSeconds === 0) totalAudioSeconds = 1000;
+      
+      let totalSilencioSeg = 0, asesoSil = 0, clienteSil = 0, sisSil = 0, pausas = 0;
+      document.querySelectorAll('#tbodySilencios tr').forEach(row => {
+        const dur = parseFloat(row.querySelectorAll('input')[2].value) || 0;
+        const resp = row.querySelector('.edit-select').value;
+        totalSilencioSeg += dur; pausas++;
+        if(resp === 'Asesor') asesoSil += dur; else if(resp === 'Cliente') clienteSil += dur; else sisSil += dur;
+      });
+
+      const habladoSeg = Math.max(0, totalAudioSeconds - totalSilencioSeg);
+      document.getElementById('mTiempoTotal').innerText = formatSmartTime(totalAudioSeconds);
+      document.getElementById('mTiempoHablado').innerText = formatSmartTime(habladoSeg);
+      document.getElementById('mTiempoSilencio').innerText = formatSmartTime(totalSilencioSeg);
+      document.getElementById('mCantPausas').innerText = pausas;
+
+      chart1.data.datasets[0].data = [Math.round(habladoSeg/2), Math.round(habladoSeg/2), Math.round(totalSilencioSeg)];
+      chart1.update();
+      chart2.data.datasets[0].data = [Math.round(asesoSil), Math.round(clienteSil), Math.round(sisSil)];
+      chart2.update();
+
+      dispararSync(); // Actualizar base de datos
+    }
+
+    function dispararSync() {
+      if(document.getElementById('analysisContainer').classList.contains('hidden')) return;
+      clearTimeout(syncTimeout);
+      syncTimeout = setTimeout(() => { enviarAutomaticoAGoogleDrive(); }, 2000); // Sincroniza 2 segs despues de editar
+    }
+
+    // Funciones de Extracción para Celda Única
+    function getDetalleSilencios() {
+      let str = "";
+      document.querySelectorAll('#tbodySilencios tr').forEach((row, i) => {
+        const inps = row.querySelectorAll('input');
+        str += `${i+1}. Inicia: ${inps[0].value} | Termina: ${inps[1].value} | Dur: ${inps[2].value}s | Resp: ${row.querySelector('.edit-select').value} | Causa: ${inps[3].value}\n`;
+      });
+      return str.trim() || "Sin silencios";
+    }
+
+    function getLineasResumen() {
+      let str = "LÍNEAS:\n";
+      document.querySelectorAll('.lista-lineas li').forEach(li => str += "- " + li.innerText + "\n");
+      str += "\nRESUMEN:\n" + document.getElementById('textResumen').innerText;
+      return str.trim();
+    }
+
+    function getTranscripcionCompleta() {
+      let str = "";
+      document.querySelectorAll('#tbodyTranscripcion tr').forEach(row => {
+        const cols = row.querySelectorAll('td');
+        str += `[${cols[0].innerText}] ${cols[1].innerText}: ${cols[2].innerText}\n`;
+      });
+      return str.trim();
     }
 
     async function enviarAutomaticoAGoogleDrive() {
@@ -459,179 +477,47 @@
         tiempoTotal: document.getElementById('mTiempoTotal').innerText,
         tiempoHablado: document.getElementById('mTiempoHablado').innerText,
         tiempoSilencio: document.getElementById('mTiempoSilencio').innerText,
-        pausas: document.getElementById('mCantPausas').innerText
+        pausas: document.getElementById('mCantPausas').innerText,
+        detalleSilencios: getDetalleSilencios(),
+        lineasResumen: getLineasResumen(),
+        transcripcionCompleta: getTranscripcionCompleta()
       };
 
       try {
-        await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(auditoria)
-        });
-        console.log("Guardado automático en Google Drive exitoso.");
-      } catch (e) {
-        console.error("Error al guardar automáticamente en Google Drive:", e);
-      }
-    }
-
-    function agregarFilaSilencio() {
-      agregarFilaTablaSilencio("00:00", "00:00", 0, "No se identifica", "Escriba causa manual...");
-      recalcularMetricas();
-    }
-
-    function agregarFilaTablaSilencio(inicia, termina, duracion, resp, causa) {
-      if(duracion < 0) duracion = 0;
-      resp = resp || 'No se identifica';
-      if(resp.toLowerCase().includes('aplica')) resp = 'No se identifica';
-
-      const tbody = document.getElementById('tbodySilencios');
-      const idx = tbody.querySelectorAll('tr').length + 1;
-      
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="td-idx">${idx}</td>
-        <td><input type="text" class="edit-input" value="${inicia}" style="width:55px;"></td>
-        <td><input type="text" class="edit-input" value="${termina}" style="width:55px;"></td>
-        <td><input type="number" step="0.5" min="0" class="edit-input" value="${duracion}" onchange="recalcularMetricas()"></td>
-        <td>
-          <select class="edit-select" onchange="recalcularMetricas()">
-            <option value="Asesor" ${resp.toLowerCase().includes('asesor') ? 'selected' : ''}>Asesor</option>
-            <option value="Cliente" ${resp.toLowerCase().includes('cliente') ? 'selected' : ''}>Cliente</option>
-            <option value="Sistema/Red" ${resp.toLowerCase().includes('sistema') ? 'selected' : ''}>Sistema/Red</option>
-            <option value="No se identifica" ${resp === 'No se identifica' ? 'selected' : ''}>No se identifica</option>
-          </select>
-        </td>
-        <td><input type="text" class="form-control" value="${causa}" style="background:transparent; border:none; padding:4px;"></td>
-        <td><button class="btn-delete" onclick="eliminarFila(this)">❌</button></td>
-      `;
-      tbody.appendChild(tr);
-    }
-
-    function eliminarFila(btn) {
-      if(confirm("¿Seguro que deseas eliminar esta fila?")) {
-        btn.closest('tr').remove();
-        document.querySelectorAll('#tbodySilencios tr').forEach((row, i) => {
-          row.querySelector('.td-idx').innerText = i + 1;
-        });
-        recalcularMetricas();
-      }
-    }
-
-    function recalcularMetricas() {
-      if(totalAudioSeconds === 0) totalAudioSeconds = 1000;
-      
-      let totalSilencioSeg = 0;
-      let asesoSil = 0, clienteSil = 0, sisSil = 0;
-      let pausas = 0;
-
-      const rows = document.querySelectorAll('#tbodySilencios tr');
-      rows.forEach(row => {
-        const inputs = row.querySelectorAll('input');
-        const dur = parseFloat(inputs[2].value) || 0;
-        const resp = row.querySelector('.edit-select').value;
-        totalSilencioSeg += dur;
-        pausas++;
-        if(resp === 'Asesor') asesoSil += dur;
-        else if(resp === 'Cliente') clienteSil += dur;
-        else if(resp === 'Sistema/Red') sisSil += dur;
-      });
-
-      const habladoSeg = Math.max(0, totalAudioSeconds - totalSilencioSeg);
-      const porcSil = ((totalSilencioSeg / totalAudioSeconds) * 100).toFixed(1);
-      const porcHab = ((habladoSeg / totalAudioSeconds) * 100).toFixed(1);
-
-      document.getElementById('mTiempoTotal').innerText = formatSmartTime(totalAudioSeconds);
-      document.getElementById('mTiempoHablado').innerText = formatSmartTime(habladoSeg);
-      document.getElementById('mPorcHablado').innerText = `(${porcHab}%)`;
-      document.getElementById('mTiempoSilencio').innerText = formatSmartTime(totalSilencioSeg);
-      document.getElementById('mPorcSilencio').innerText = `(${porcSil}%)`;
-      document.getElementById('mCantPausas').innerText = pausas;
-
-      const mitadHabla = habladoSeg / 2;
-
-      chart1.data.datasets[0].data = [Math.round(mitadHabla), Math.round(mitadHabla), Math.round(totalSilencioSeg)];
-      chart1.update();
-      chart2.data.datasets[0].data = [Math.round(asesoSil), Math.round(clienteSil), Math.round(sisSil)];
-      chart2.update();
+        await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(auditoria) });
+      } catch (e) { console.error("Error al sincronizar con Drive:", e); }
     }
 
     function initCharts() {
-      if (chart1) chart1.destroy();
-      if (chart2) chart2.destroy();
-
-      const commonOptions = {
-        plugins: {
-          legend: { labels: { color: '#64748b', font: { size: 11, weight: 'bold' } } },
-          datalabels: { color: '#ffffff', font: { weight: 'bold', size: 14 }, formatter: (val) => val > 0 ? val : '' }
-        },
-        responsive: true, maintainAspectRatio: false
+      if (chart1) chart1.destroy(); if (chart2) chart2.destroy();
+      const pctFormatter = (val, ctx) => {
+        let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+        return (sum === 0 || val === 0) ? '' : (val * 100 / sum).toFixed(1) + "%";
       };
+      const opt = { plugins: { legend: { labels: { color: '#64748b', font:{size:11, weight:'bold'} } }, datalabels: { color: '#fff', font: { weight:'bold', size: 14 }, formatter: pctFormatter } }, responsive: true, maintainAspectRatio: false };
 
-      chart1 = new Chart(document.getElementById('chartTiempo'), {
-        type: 'doughnut',
-        data: { labels: ['Habla Asesor', 'Habla Cliente', 'Silencio (>3s)'], datasets: [{ data: [0,0,0], backgroundColor: ['#2563eb', '#16a34a', '#dc2626'] }] },
-        options: commonOptions
-      });
-
-      chart2 = new Chart(document.getElementById('chartResponsabilidad'), {
-        type: 'bar',
-        data: { labels: ['Asesor', 'Cliente', 'Sistema/Red'], datasets: [{ label: 'Segundos', data: [0,0,0], backgroundColor: '#2563eb' }] },
-        options: {
-          plugins: { legend: { display: false }, datalabels: { color: '#fff', font: { weight: 'bold', size: 14 }, anchor: 'center', align: 'center', formatter: (val) => val > 0 ? val : '' } },
-          scales: { x: { ticks: { color: '#64748b', font: {weight:'bold'} }, grid: { display: false } }, y: { ticks: { color: '#64748b' } } },
-          responsive: true, maintainAspectRatio: false
-        }
-      });
-    }
-
-    function limpiarPantalla() {
-      document.getElementById('audioInput').value = "";
-      document.getElementById('codigoID').value = "";
-      document.getElementById('numeroConsulta').value = "";
-      document.getElementById('dniCliente').value = "";
-      document.getElementById('tipoOperacion').value = "";
-      document.getElementById('nombreAsesor').value = "";
-      document.getElementById('nombreCliente').value = "";
-      document.getElementById('fileNameText').innerText = "Haz clic para seleccionar tu audio (.wav, .mp3)";
-      document.getElementById('audioPlayer').classList.add('hidden');
-      document.getElementById('analysisContainer').classList.add('hidden');
-      document.getElementById('btnExcel').classList.add('hidden');
-      document.getElementById('btnLimpiar').classList.add('hidden');
-      document.getElementById('placeholderMsg').classList.remove('hidden');
+      chart1 = new Chart(document.getElementById('chartTiempo'), { type: 'doughnut', data: { labels: ['Habla Asesor', 'Habla Cliente', 'Silencio (>3s)'], datasets: [{ data: [0,0,0], backgroundColor: ['#2563eb', '#16a34a', '#dc2626'] }] }, options: opt });
       
-      let d = new Date(); d.setDate(d.getDate() - 1); if (d.getDay() === 0) d.setDate(d.getDate() - 1);
-      document.getElementById('fechaLlamada').value = d.toISOString().split('T')[0];
+      let optBar = JSON.parse(JSON.stringify(opt));
+      optBar.plugins.legend.display = false;
+      optBar.scales = { x: { ticks: { color: '#64748b', font:{weight:'bold'} }, grid:{display:false} } };
+      chart2 = new Chart(document.getElementById('chartResponsabilidad'), { type: 'bar', data: { labels: ['Asesor', 'Cliente', 'Sistema/Red'], datasets: [{ data: [0,0,0], backgroundColor: '#2563eb' }] }, options: optBar });
     }
 
     function descargarCSV() {
-      const sn = document.getElementById('codigoID').value;
       let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-      
       csvContent += `CAMPAÑA,${document.getElementById('selectCampana').value}\n`;
-      csvContent += `SN / CODIGO ID,${sn}\n`;
-      csvContent += `FECHA LLAMADA,${document.getElementById('fechaLlamada').value}\n`;
-      csvContent += `TIEMPO TOTAL,${document.getElementById('mTiempoTotal').innerText}\n`;
-      csvContent += `TIEMPO SILENCIO,${document.getElementById('mTiempoSilencio').innerText}\n\n`;
-
-      csvContent += "Registro de Silencios\n";
-      csvContent += "Inicia,Termina,Duración (seg),Responsable,Causa\n";
-      document.querySelectorAll('#tbodySilencios tr').forEach(row => {
-        const inputs = row.querySelectorAll('input');
-        const inicia = inputs[0].value;
-        const termina = inputs[1].value;
-        const duracion = inputs[2].value;
-        const resp = row.querySelector('.edit-select').value;
-        const causa = inputs[3].value;
-        csvContent += `"${inicia}","${termina}","${duracion}","${resp}","${causa}"\n`;
-      });
-
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `Auditoria_QA_${sn}.csv`);
+      csvContent += `SN,${document.getElementById('codigoID').value}\n`;
+      csvContent += `TIEMPO TOTAL,${document.getElementById('mTiempoTotal').innerText}\n\n`;
+      csvContent += `--- SILENCIOS ---\n"${getDetalleSilencios().replace(/"/g, '""')}"\n\n`;
+      csvContent += `--- TRANSCRIPCION ---\n"${getTranscripcionCompleta().replace(/"/g, '""')}"\n`;
+      
+      const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent));
+      link.setAttribute("download", `Reporte_${document.getElementById('codigoID').value}.csv`);
       document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
+
+    function limpiarPantalla() { location.reload(); }
   </script>
 </body>
 </html>
