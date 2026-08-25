@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Analizador VAD & Transcripción de Llamadas - GEA QA TOOL</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Plugin para mostrar los números sobre los gráficos -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <style>
     :root {
@@ -105,11 +104,6 @@
     <aside>
       <div class="panel">
         <div class="panel-title">📁 Carga de Audio y Datos</div>
-
-        <div class="form-group" style="background: #eff6ff; padding: 12px; border-radius: 8px; border: 1px dashed #2563eb; margin-bottom: 16px;">
-          <label for="apiKey" style="color: #1e40af; margin-bottom: 4px;">🔑 Gemini API Key (Procesamiento Directo)</label>
-          <input type="password" id="apiKey" class="form-control" placeholder="Pega tu API Key aquí">
-        </div>
 
         <div class="drop-zone" onclick="document.getElementById('audioInput').click()">
           <div class="drop-icon">🎙️</div>
@@ -240,16 +234,11 @@
   </div>
 
   <script>
-    Chart.register(ChartDataLabels); // Registrar plugin de labels
+    Chart.register(ChartDataLabels);
 
     let totalAudioSeconds = 0;
     let chart1 = null;
     let chart2 = null;
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const savedKey = localStorage.getItem("gemini_api_key");
-      if (savedKey) document.getElementById("apiKey").value = savedKey;
-    });
 
     function formatMMSS(seconds) {
       if(isNaN(seconds) || seconds < 0) seconds = 0;
@@ -262,28 +251,23 @@
       const file = document.getElementById('audioInput').files[0];
       if (file) {
         document.getElementById('fileNameText').innerText = "Archivo listo: " + file.name;
-        // Obtener la duración exacta del audio desde el navegador
         const tempPlayer = new Audio(URL.createObjectURL(file));
         tempPlayer.onloadedmetadata = () => { totalAudioSeconds = tempPlayer.duration; };
       }
     }
 
     async function procesarAudioClientSide() {
-      const apiKey = document.getElementById('apiKey').value.trim();
       const codigoID = document.getElementById('codigoID').value.trim();
       const fileInput = document.getElementById('audioInput');
 
-      if (!apiKey) return alert('Por favor ingresa tu API Key.');
       if (!codigoID) return alert('Por favor ingresa la SN o Código ID de la llamada.');
       
-      // Validar que el Código ID sea solo números
       if (!/^\d+$/.test(codigoID)) {
         return alert('Error: La SN / Código ID debe contener únicamente números.');
       }
 
       if (!fileInput.files[0]) return alert('Por favor selecciona un archivo de audio.');
 
-      localStorage.setItem("gemini_api_key", apiKey);
       const file = fileInput.files[0];
       const player = document.getElementById('audioPlayer');
       player.src = URL.createObjectURL(file);
@@ -291,9 +275,16 @@
 
       document.getElementById('placeholderMsg').classList.remove('hidden');
       document.getElementById('analysisContainer').classList.add('hidden');
-      document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--primary-blue);">⏳ Subiendo archivo y analizando con IA...</h3>`;
+      document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--primary-blue);">⏳ Autenticando y procesando audio con IA...</h3>`;
 
       try {
+        // Obtenemos la clave de forma invisible desde tu endpoint seguro /api/key
+        const keyRes = await fetch('/api/key');
+        const keyData = await keyRes.json();
+        const apiKey = keyData.key;
+
+        if (!apiKey) throw new Error("API Key no configurada en el servidor de Vercel.");
+
         const uploadUrl = `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`;
         const mimeType = file.type || 'audio/wav';
         const uploadHeaders = {
@@ -304,13 +295,12 @@
         };
 
         const uploadRes = await fetch(uploadUrl, { method: 'POST', headers: uploadHeaders, body: file });
-        if (!uploadRes.ok) throw new Error("Error en la subida a Gemini.");
+        if (!uploadRes.ok) throw new Error("Error en la subida del archivo de audio.");
 
         const fileUri = (await uploadRes.json()).file.uri;
 
         const generateUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
         
-        // Prompt optimizado
         const promptTexto = `Analiza detalladamente este audio y extrae la información en un formato JSON estricto:
         {
           "participantes": {
@@ -336,7 +326,7 @@
         };
 
         const genRes = await fetch(generateUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bodyData) });
-        if (!genRes.ok) throw new Error("Error analizando el audio.");
+        if (!genRes.ok) throw new Error("Error analizando el audio con IA.");
 
         const jsonText = (await genRes.json()).candidates[0].content.parts[0].text;
         const data = JSON.parse(jsonText);
@@ -345,7 +335,7 @@
 
       } catch (error) {
         alert(error.message);
-        document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--accent-red);">❌ Ocurrió un error. Verifica el archivo o la conexión.</h3>`;
+        document.getElementById('placeholderMsg').innerHTML = `<h3 style="color: var(--accent-red);">❌ Ocurrió un error. Verifica la conexión o el archivo.</h3>`;
       }
     }
 
@@ -358,16 +348,13 @@
       document.getElementById('nombreAsesor').value = data.participantes?.asesor || "No detectado";
       document.getElementById('nombreCliente').value = data.participantes?.cliente || "No detectado";
 
-      // Llenar Lista de Líneas
       let htmlLineas = `<ul class="lista-lineas">`;
       (data.lineas || []).forEach(linea => { htmlLineas += `<li>${linea}</li>`; });
       htmlLineas += `</ul>`;
       document.getElementById('textLineas').innerHTML = htmlLineas;
 
-      // Resumen de llamada
       document.getElementById('textResumen').innerText = data.resumenLlamada || "";
 
-      // Construir tabla de silencios editable
       let htmlSilencios = "";
       (data.silencios || []).forEach((s, idx) => {
         let dur = s.terminaSeg - s.iniciaSeg;
@@ -394,17 +381,13 @@
       });
       document.getElementById('tbodySilencios').innerHTML = htmlSilencios;
 
-      // Transcripción
       let htmlTrans = "";
       (data.transcripcion || []).forEach(t => {
         htmlTrans += `<tr><td style="white-space:nowrap;">${t.tiempo}</td><td><strong>${t.hablante}</strong></td><td>${t.dialogo}</td></tr>`;
       });
       document.getElementById('tbodyTranscripcion').innerHTML = htmlTrans;
 
-      // Iniciar Gráficos vacíos
       initCharts();
-      
-      // Calcular métricas
       recalcularMetricas();
     }
 
@@ -416,7 +399,7 @@
     }
 
     function recalcularMetricas() {
-      if(totalAudioSeconds === 0) totalAudioSeconds = 1000; // Resguardo por si falla lectura de audio
+      if(totalAudioSeconds === 0) totalAudioSeconds = 1000;
       
       let totalSilencioSeg = 0;
       let asesoSil = 0, clienteSil = 0, sisSil = 0;
@@ -444,7 +427,6 @@
       document.getElementById('mPorcSilencio').innerText = `(${porcSil}%)`;
       document.getElementById('mCantPausas').innerText = pausas;
 
-      // Asumimos un 50/50 hablado para la gráfica 1 (ya que requeriría lectura experta para separarlo)
       const mitadHabla = habladoSeg / 2;
 
       chart1.data.datasets[0].data = [Math.round(mitadHabla), Math.round(mitadHabla), Math.round(totalSilencioSeg)];
