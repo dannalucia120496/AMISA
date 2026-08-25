@@ -93,8 +93,7 @@
       <h1>Analizador VAD & Transcripción</h1>
     </div>
     <div class="top-actions">
-      <button class="btn btn-primary" onclick="descargarBDHistorica()">📥 Descargar BD Histórica</button>
-      <button class="btn btn-success hidden" id="btnExcel" onclick="guardarYExportarReporte()">📊 Guardar y Exportar CSV</button>
+      <button class="btn btn-success hidden" id="btnExcel" onclick="descargarCSV()">📊 Descargar Reporte CSV</button>
       <button class="btn btn-danger hidden" id="btnLimpiar" onclick="limpiarPantalla()">🗑️ Nuevo Audio</button>
     </div>
   </header>
@@ -106,12 +105,28 @@
       <div class="panel">
         <div class="panel-title">📁 Carga de Datos y Audio</div>
 
-        <div class="form-group" style="margin-bottom: 15px;">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label for="selectCampana">Campaña (*)</label>
+          <select id="selectCampana" class="form-control" onchange="guardarCampanaLocal()">
+            <option value="">-- Selecciona Campaña --</option>
+            <option value="OLAS FOCO MIGRA Y FC">OLAS FOCO MIGRA Y FC</option>
+            <option value="FIJA OUT">FIJA OUT</option>
+            <option value="UPGRADE">UPGRADE</option>
+            <option value="MIGRACIÓN">MIGRACIÓN</option>
+            <option value="RENO OUT">RENO OUT</option>
+            <option value="OLAS FOCO RENO">OLAS FOCO RENO</option>
+            <option value="MULTISERVICIOS">MULTISERVICIOS</option>
+            <option value="CROSS 123">CROSS 123</option>
+            <option value="RENO WSPP">RENO WSPP</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 12px;">
           <label for="fechaLlamada">Fecha de Llamada (*)</label>
           <input type="date" id="fechaLlamada" class="form-control" required>
         </div>
 
-        <div class="form-group" style="margin-bottom: 15px;">
+        <div class="form-group" style="margin-bottom: 12px;">
           <label for="codigoID">SN / Código ID de la Llamada (*)</label>
           <input type="text" id="codigoID" class="form-control" placeholder="Ej: 1787595589118348" required>
           <small style="color: var(--accent-red); font-size: 10px; font-weight: 600;">* Solo números</small>
@@ -134,7 +149,6 @@
           <input type="text" id="nombreCliente" class="form-control" placeholder="Auto-detectado o manual">
         </div>
 
-        <!-- Nuevos campos -->
         <div class="form-group">
           <label>Número en Consulta</label>
           <input type="text" id="numeroConsulta" class="form-control" placeholder="Si se detecta...">
@@ -259,23 +273,33 @@
   </div>
 
   <script>
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxupx7dVq-KmvCIhmU0w1hfwIUjfdXJ1EQy02-h4NvF76eY1glXb3wTKOsTo_n82UPtHw/exec";
+
     Chart.register(ChartDataLabels);
 
     let totalAudioSeconds = 0;
     let chart1 = null;
     let chart2 = null;
 
-    // Llenar Fecha Automáticamente al Cargar la Página
     document.addEventListener("DOMContentLoaded", () => {
+      // Fecha predeterminada (ayer, saltando domingo)
       let d = new Date();
-      d.setDate(d.getDate() - 1); // Ayer
-      if (d.getDay() === 0) {     // Si ayer fue domingo (0), retrocede un día más al sábado
-        d.setDate(d.getDate() - 1);
-      }
+      d.setDate(d.getDate() - 1);
+      if (d.getDay() === 0) d.setDate(d.getDate() - 1);
       document.getElementById('fechaLlamada').value = d.toISOString().split('T')[0];
+
+      // Cargar Campaña guardada en el navegador
+      const campanaGuardada = localStorage.getItem("gea_qa_campana");
+      if (campanaGuardada) {
+        document.getElementById('selectCampana').value = campanaGuardada;
+      }
     });
 
-    // Formateador Inteligente de Tiempo (Segundos o Minutos)
+    function guardarCampanaLocal() {
+      const campanaVal = document.getElementById('selectCampana').value;
+      localStorage.setItem("gea_qa_campana", campanaVal);
+    }
+
     function formatSmartTime(seconds) {
       if(isNaN(seconds) || seconds < 0) seconds = 0;
       if (seconds < 60) {
@@ -287,7 +311,6 @@
       }
     }
 
-    // Formateador exacto MM:SS para las tablas
     function formatMMSS(seconds) {
       if(isNaN(seconds) || seconds < 0) seconds = 0;
       const m = Math.floor(seconds / 60);
@@ -305,10 +328,12 @@
     }
 
     async function procesarAudioClientSide() {
+      const campana = document.getElementById('selectCampana').value;
       const codigoID = document.getElementById('codigoID').value.trim();
       const fechaLlam = document.getElementById('fechaLlamada').value;
       const fileInput = document.getElementById('audioInput');
 
+      if (!campana) return alert('Por favor selecciona una Campaña.');
       if (!fechaLlam) return alert('Por favor ingresa la Fecha de la Llamada.');
       if (!codigoID) return alert('Por favor ingresa la SN o Código ID.');
       if (!/^\d+$/.test(codigoID)) return alert('Error: El campo SN debe contener ÚNICAMENTE números.');
@@ -373,7 +398,12 @@
         if (!genRes.ok) throw new Error("Error analizando el audio con IA.");
 
         const jsonText = (await genRes.json()).candidates[0].content.parts[0].text;
-        construirDashboardInicial(JSON.parse(jsonText));
+        const dataParsed = JSON.parse(jsonText);
+        
+        construirDashboardInicial(dataParsed);
+
+        // --- GUARDADO AUTOMÁTICO EN GOOGLE DRIVE ---
+        enviarAutomaticoAGoogleDrive();
 
       } catch (error) {
         alert(error.message);
@@ -387,29 +417,24 @@
       document.getElementById('btnExcel').classList.remove('hidden');
       document.getElementById('btnLimpiar').classList.remove('hidden');
 
-      // Campos de Sidebar
       document.getElementById('nombreAsesor').value = data.participantes?.asesor || "";
       document.getElementById('nombreCliente').value = data.participantes?.cliente || "";
       document.getElementById('numeroConsulta').value = data.participantes?.numero || "";
       document.getElementById('dniCliente').value = data.participantes?.dni || "";
       document.getElementById('tipoOperacion').value = data.participantes?.operacion || "";
 
-      // Lista de Líneas
       let htmlLineas = `<ul class="lista-lineas">`;
       (data.lineas || []).forEach(l => { htmlLineas += `<li>${l}</li>`; });
       htmlLineas += `</ul>`;
       document.getElementById('textLineas').innerHTML = htmlLineas;
 
-      // Resumen
       document.getElementById('textResumen').innerText = data.resumenLlamada || "";
 
-      // Tabla Silencios
       document.getElementById('tbodySilencios').innerHTML = "";
       (data.silencios || []).forEach(s => {
         agregarFilaTablaSilencio(formatMMSS(s.iniciaSeg), formatMMSS(s.terminaSeg), (s.terminaSeg - s.iniciaSeg), s.responsable, s.causa);
       });
 
-      // Transcripción
       let htmlTrans = "";
       (data.transcripcion || []).forEach(t => {
         htmlTrans += `<tr><td style="white-space:nowrap;">${t.tiempo}</td><td><strong>${t.hablante}</strong></td><td>${t.dialogo}</td></tr>`;
@@ -418,6 +443,36 @@
 
       initCharts();
       recalcularMetricas();
+    }
+
+    async function enviarAutomaticoAGoogleDrive() {
+      const auditoria = {
+        sn: document.getElementById('codigoID').value,
+        fechaLlamada: document.getElementById('fechaLlamada').value,
+        fechaProceso: new Date().toISOString().split('T')[0],
+        campana: document.getElementById('selectCampana').value,
+        asesor: document.getElementById('nombreAsesor').value,
+        cliente: document.getElementById('nombreCliente').value,
+        dni: document.getElementById('dniCliente').value,
+        numero: document.getElementById('numeroConsulta').value,
+        operacion: document.getElementById('tipoOperacion').value,
+        tiempoTotal: document.getElementById('mTiempoTotal').innerText,
+        tiempoHablado: document.getElementById('mTiempoHablado').innerText,
+        tiempoSilencio: document.getElementById('mTiempoSilencio').innerText,
+        pausas: document.getElementById('mCantPausas').innerText
+      };
+
+      try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(auditoria)
+        });
+        console.log("Guardado automático en Google Drive exitoso.");
+      } catch (e) {
+        console.error("Error al guardar automáticamente en Google Drive:", e);
+      }
     }
 
     function agregarFilaSilencio() {
@@ -456,7 +511,6 @@
     function eliminarFila(btn) {
       if(confirm("¿Seguro que deseas eliminar esta fila?")) {
         btn.closest('tr').remove();
-        // re-enumerar
         document.querySelectorAll('#tbodySilencios tr').forEach((row, i) => {
           row.querySelector('.td-idx').innerText = i + 1;
         });
@@ -546,45 +600,19 @@
       document.getElementById('btnLimpiar').classList.add('hidden');
       document.getElementById('placeholderMsg').classList.remove('hidden');
       
-      // Restaurar Fecha Automática
       let d = new Date(); d.setDate(d.getDate() - 1); if (d.getDay() === 0) d.setDate(d.getDate() - 1);
       document.getElementById('fechaLlamada').value = d.toISOString().split('T')[0];
     }
 
-    // GESTION DE BASE DE DATOS Y EXPORTACION
-    function guardarYExportarReporte() {
+    function descargarCSV() {
       const sn = document.getElementById('codigoID').value;
-      const fechaProceso = new Date().toISOString().split('T')[0];
-      
-      // Objeto a guardar en BD Acumulativa
-      const auditoria = {
-        sn: sn,
-        fechaLlamada: document.getElementById('fechaLlamada').value,
-        fechaProceso: fechaProceso,
-        asesor: document.getElementById('nombreAsesor').value,
-        cliente: document.getElementById('nombreCliente').value,
-        dni: document.getElementById('dniCliente').value,
-        numero: document.getElementById('numeroConsulta').value,
-        operacion: document.getElementById('tipoOperacion').value,
-        tiempoTotal: document.getElementById('mTiempoTotal').innerText,
-        tiempoHablado: document.getElementById('mTiempoHablado').innerText,
-        tiempoSilencio: document.getElementById('mTiempoSilencio').innerText,
-        pausas: document.getElementById('mCantPausas').innerText
-      };
-
-      // Guardar Localmente
-      let db = JSON.parse(localStorage.getItem('gea_qa_history') || '[]');
-      const index = db.findIndex(r => r.sn === sn);
-      if (index >= 0) db[index] = auditoria; else db.push(auditoria);
-      localStorage.setItem('gea_qa_history', JSON.stringify(db));
-
-      // Descargar Reporte Individual
       let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+      
+      csvContent += `CAMPAÑA,${document.getElementById('selectCampana').value}\n`;
       csvContent += `SN / CODIGO ID,${sn}\n`;
-      csvContent += `FECHA LLAMADA,${auditoria.fechaLlamada}\n`;
-      csvContent += `TIPO OPERACION,${auditoria.operacion}\n`;
-      csvContent += `TIEMPO TOTAL,${auditoria.tiempoTotal}\n`;
-      csvContent += `TIEMPO SILENCIO,${auditoria.tiempoSilencio}\n\n`;
+      csvContent += `FECHA LLAMADA,${document.getElementById('fechaLlamada').value}\n`;
+      csvContent += `TIEMPO TOTAL,${document.getElementById('mTiempoTotal').innerText}\n`;
+      csvContent += `TIEMPO SILENCIO,${document.getElementById('mTiempoSilencio').innerText}\n\n`;
 
       csvContent += "Registro de Silencios\n";
       csvContent += "Inicia,Termina,Duración (seg),Responsable,Causa\n";
@@ -602,24 +630,6 @@
       const link = document.createElement("a");
       link.setAttribute("href", encodedUri);
       link.setAttribute("download", `Auditoria_QA_${sn}.csv`);
-      document.body.appendChild(link); link.click(); document.body.removeChild(link);
-    }
-
-    function descargarBDHistorica() {
-      let db = JSON.parse(localStorage.getItem('gea_qa_history') || '[]');
-      if(db.length === 0) return alert("La base de datos histórica está vacía.");
-
-      let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-      csvContent += "SN,Fecha Llamada,Fecha Proceso,Asesor,Cliente,DNI,Numero,Operacion,T.Total,T.Hablado,T.Silencio,Pausas\n";
-      
-      db.forEach(r => {
-        csvContent += `"${r.sn}","${r.fechaLlamada}","${r.fechaProceso}","${r.asesor}","${r.cliente}","${r.dni}","${r.numero}","${r.operacion}","${r.tiempoTotal}","${r.tiempoHablado}","${r.tiempoSilencio}","${r.pausas}"\n`;
-      });
-
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `BD_Historica_Auditorias.csv`);
       document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
   </script>
